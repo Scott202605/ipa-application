@@ -88,6 +88,45 @@ ErrCode ipad_wrapper_get_all_profiles_info(profile_info_t **profiles,
 ErrCode ipad_wrapper_get_eim_configuration(eim_configuration_data_t *eim_config);
 
 // ============================================================================
+// Profile 管理 API（新增）
+// ============================================================================
+
+/**
+ * @brief 下载 Profile
+ * @param iccid ICCID
+ * @param smdp_address SM-DP+ 服务器地址
+ * @param confirmation_code 确认码（可选，NULL 表示不需要）
+ * @param activation_code 激活码（可选）
+ * @return eOk 成功，其他值失败
+ */
+ErrCode ipad_wrapper_profile_download(
+    const char *iccid,
+    const char *smdp_address,
+    const char *confirmation_code,
+    const char *activation_code);
+
+/**
+ * @brief 启用 Profile
+ * @param iccid ICCID
+ * @return eOk 成功，其他值失败
+ */
+ErrCode ipad_wrapper_profile_enable(const char *iccid);
+
+/**
+ * @brief 禁用 Profile
+ * @param iccid ICCID
+ * @return eOk 成功，其他值失败
+ */
+ErrCode ipad_wrapper_profile_disable(const char *iccid);
+
+/**
+ * @brief 删除 Profile
+ * @param iccid ICCID
+ * @return eOk 成功，其他值失败
+ */
+ErrCode ipad_wrapper_profile_delete(const char *iccid);
+
+// ============================================================================
 // Fallback 机制
 // ============================================================================
 
@@ -110,6 +149,57 @@ ErrCode ipad_wrapper_return_from_fallback(void);
  */
 ErrCode ipad_wrapper_execute_profile_rollback_result(
     profile_rollback_result_t *result);
+
+// ============================================================================
+// 会话管理 API（新增）
+// ============================================================================
+
+/**
+ * @brief 连接 MQTT 服务
+ * @param hostname MQTT 服务器主机名
+ * @param port 端口号
+ * @param username 用户名
+ * @param password 密码
+ * @param use_tls 是否使用 TLS 加密
+ * @return eOk 成功，其他值失败
+ */
+ErrCode ipad_wrapper_connect_mqtt(
+    const char *hostname,
+    int port,
+    const char *username,
+    const char *password,
+    bool use_tls);
+
+/**
+ * @brief 连接 LwM2M 服务
+ * @param hostname LwM2M 服务器主机名
+ * @param port 端口号
+ * @param client_name 客户端名称
+ * @param use_dtls 是否使用 DTLS 加密
+ * @return eOk 成功，其他值失败
+ */
+ErrCode ipad_wrapper_connect_lwm2m(
+    const char *hostname,
+    int port,
+    const char *client_name,
+    bool use_dtls);
+
+/**
+ * @brief 连接 HTTP 服务
+ * @param fqdn HTTP 服务器域名
+ * @param max_timeout 最大超时时间（秒）
+ * @param http_timeout HTTP 超时时间（秒）
+ * @return eOk 成功，其他值失败
+ */
+ErrCode ipad_wrapper_connect_http(
+    const char *fqdn,
+    uint32_t max_timeout,
+    uint32_t http_timeout);
+
+/**
+ * @brief 停止所有 EIM 服务
+ */
+void ipad_wrapper_stop_eim_service(void);
 
 // ============================================================================
 // 通知管理

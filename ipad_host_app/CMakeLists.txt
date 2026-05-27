@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22.1)
 project(ipad_host_app
-        VERSION 1.0.0
+        VERSION 1.1.0
         LANGUAGES C
         DESCRIPTION "IPA Host Application with GUI"
 )
@@ -22,9 +22,11 @@ set(IPAD_SDK_ROOT "${CMAKE_SOURCE_DIR}/../ipa_sdk_pc")
 # 添加头文件搜索路径
 include_directories(
     ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_SOURCE_DIR}/src/utils
     ${IPAD_SDK_ROOT}/include
     ${IPAD_SDK_ROOT}/ipa-src/profile-assistant-commons/core
     ${IPAD_SDK_ROOT}/ipa-src/profile-assistant-commons/interfaces
+    ${IPAD_SDK_ROOT}/ipa-src/profile-assistant-commons/core/gsma/interfaces
     ${GTK3_INCLUDE_DIRS}
 )
 
@@ -47,6 +49,7 @@ set(SOURCES
     src/business_logic/response_parser.c
     src/utils/logger.c
     src/utils/json_helper.c
+    src/utils/config_manager.c
     src/debug/mock_response.c
 )
 
@@ -85,3 +88,4 @@ endif()
 # 安装规则
 install(TARGETS ipad_host_app DESTINATION bin)
 install(DIRECTORY resources/ DESTINATION share/ipad_host_app)
+install(FILES config/ipad_config.example.json DESTINATION share/ipad_host_app)

@@ -1,0 +1,35 @@
+{
+  "config_version": "1.0.0",
+  "es10_driver": 0,
+  "driver_id": "/dev/ttyUSB0",
+  "log_level": 3,
+  "initial_refresh_sleep": 1,
+  "refresh_max_sleep": 64,
+  
+  "mqtt_enabled": false,
+  "mqtt_hostname": "mqtt.example.com",
+  "mqtt_port": 1883,
+  "mqtt_use_tls": false,
+  
+  "lwm2m_enabled": false,
+  "lwm2m_hostname": "lwm2m.example.com",
+  "lwm2m_port": 5684,
+  "lwm2m_client_name": "ipa-client-001",
+  "lwm2m_use_dtls": true,
+  "lwm2m_bootstrap": false,
+  
+  "http_enabled": true,
+  "http_fqdn": "smdp.example.com",
+  "http_timeout": 30,
+  "http_max_timeout": 3600,
+  
+  "window_width": 1200,
+  "window_height": 800,
+  "font_size": 10,
+  "auto_save_logs": true,
+  "log_file_path": "/var/log/ipad/ipad_host_app.log",
+  
+  "enable_mock_response": false,
+  "enable_debug_logging": false,
+  "mock_error_code": 0
+}
