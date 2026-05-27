@@ -1,0 +1,13 @@
+target_include_directories(${PROJECT_NAME} PRIVATE .)
+
+target_sources(${PROJECT_NAME} PRIVATE http_client_linux.c)
+target_sources(${PROJECT_NAME} PRIVATE logger_linux.c)
+target_sources(${PROJECT_NAME} PRIVATE memory_manager_linux.c)
+target_sources(${PROJECT_NAME} PRIVATE mqtt_client_linux.c)
+target_sources(${PROJECT_NAME} PRIVATE semaphore_linux.c)
+target_sources(${PROJECT_NAME} PRIVATE serial_port_linux.c)
+target_sources(${PROJECT_NAME} PRIVATE serial_termios_linux.c)
+target_sources(${PROJECT_NAME} PRIVATE timer_linux.c)
+target_sources(${PROJECT_NAME} PRIVATE sha256_linux.c)
+target_sources(${PROJECT_NAME} PRIVATE string_ext.c)
+target_sources(${PROJECT_NAME} PRIVATE user_consent_linux.c)
