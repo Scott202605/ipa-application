@@ -44,21 +44,38 @@
 - ✅ 获取所有 Profile 信息
 - ✅ 获取 eIM 配置信息
 
-### 2. Fallback 机制
+### 2. Profile 管理 (v1.1.0 新增)
+- ✅ Profile 下载（从 SM-DP+ 服务器）
+- ✅ Profile 启用
+- ✅ Profile 禁用
+- ✅ Profile 删除
+
+### 3. 会话管理 (v1.1.0 新增)
+- ✅ MQTT 连接（支持 TLS）
+- ✅ LwM2M 连接（支持 DTLS）
+- ✅ HTTP 连接
+- ✅ EIM 服务控制
+
+### 4. Fallback 机制
 - ✅ 执行 Fallback Profile 启用
 - ✅ 从 Fallback 返回
 - ✅ 报告 Profile 回滚结果
 
-### 3. 应急功能
+### 5. 应急功能
 - ✅ 启用应急 Profile
 - ✅ 禁用应急 Profile
 
-### 4. 通知处理
+### 6. 通知处理
 - ✅ 发送所有待处理通知
 - ✅ 发送单个通知
 - ✅ 移除通知（单个/全部）
 
-### 5. 调试功能
+### 7. 配置管理 (v1.1.0 新增)
+- ✅ JSON 配置文件支持
+- ✅ 配置验证和默认值回退
+- ✅ 支持所有核心参数配置
+
+### 8. 调试功能
 - ✅ 手动响应参数注入（模拟错误场景）
 - ✅ 实时日志显示
 - ✅ 日志导出
@@ -116,6 +133,7 @@ make -j$(nproc)
 | [用户操作指南](ipad_host_app/docs/User_Guide.md) | 使用方法、界面说明、操作步骤 |
 | [API 参考文档](ipad_host_app/docs/API_Reference.md) | 所有 API 的详细定义和示例 |
 | [架构设计文档](ipad_host_app/docs/Architecture_Design.md) | 技术架构、设计模式、扩展性 |
+| [配置使用指南](ipad_host_app/docs/CONFIG_GUIDE.md) | 配置文件详解、配置项说明（v1.1.0） |
 | [项目结构](PROJECT_STRUCTURE.md) | 目录结构、模块划分、依赖关系 |
 
 ## 🎯 API 分类
@@ -129,6 +147,22 @@ make -j$(nproc)
 | `ipa__get_certs()` | 获取证书信息 |
 | `ipa__get_all_profiles_info()` | 获取 Profile 列表 |
 | `ipa__get_eim_configuration()` | 获取 eIM 配置 |
+
+### Profile 管理 (v1.1.0)
+| API | 功能 |
+|-----|------|
+| `ipad_wrapper_profile_download()` | 从 SM-DP+ 下载 Profile |
+| `ipad_wrapper_profile_enable()` | 启用 Profile |
+| `ipad_wrapper_profile_disable()` | 禁用 Profile |
+| `ipad_wrapper_profile_delete()` | 删除 Profile |
+
+### 会话管理 (v1.1.0)
+| API | 功能 |
+|-----|------|
+| `ipad_wrapper_connect_mqtt()` | 连接 MQTT 服务 |
+| `ipad_wrapper_connect_lwm2m()` | 连接 LwM2M 服务 |
+| `ipad_wrapper_connect_http()` | 连接 HTTP 服务 |
+| `ipad_wrapper_stop_eim_service()` | 停止 EIM 服务 |
 
 ### Fallback 机制
 | API | 功能 |
@@ -229,28 +263,24 @@ valgrind --leak-check=full --show-leak-kinds=all ./ipad_host_app
 
 ## 📝 开发计划
 
+### 已实现功能 (v1.1.0)
+
+- ✅ Profile 管理 API（下载、启用、禁用、删除）
+- ✅ 会话管理 API（MQTT/LwM2M 通信）
+- ✅ 完整的配置文件支持
+- ✅ 配置文档和使用指南
+
 ### 待实现功能
 
-- [ ] Profile 管理 API（下载、启用、禁用、删除）
-- [ ] 会话管理 API（MQTT/LwM2M 通信）
-- [ ] 完整的配置文件支持
 - [ ] 批量操作功能
 - [ ] 多语言支持 (i18n)
 - [ ] 日志检索和过滤
 - [ ] 自动化测试用例
-
-## 📄 许可证
-
-- SDK 源码：Copyright (c) Giesecke+Devrient Mobile Security GmbH
-- 上位机程序代码：根据项目 LICENSE 文件
-
-## 👥 技术支持
-
-- [用户操作指南](ipad_host_app/docs/User_Guide.md)
-- [API 参考文档](ipad_host_app/docs/API_Reference.md)
-- [架构设计文档](ipad_host_app/docs/Architecture_Design.md)
+- [ ] TLS 证书配置支持
+- [ ] 配置热更新机制
 
 ---
 
-**版本**: V1.0  
-**最后更新**: 2026-02-04
+**版本**: V1.1.0  
+**发布日期**: 2026-02-04  
+**下载**: [Release v1.1.0](https://github.com/Scott202605/ipa-application/releases/tag/v1.1.0)
