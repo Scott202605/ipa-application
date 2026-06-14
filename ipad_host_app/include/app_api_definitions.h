@@ -4,18 +4,6 @@
 #include "ipad_app_types.h"
 
 // ============================================================================
-// 枚举值定义
-// ============================================================================
-
-static const char *ENUM_ERROR_CODE[] = {
-    "eOk", "eFatal", "eNotSupported", "eNotImpl", "eBadArg",
-    "eJsonParseError", "eSessionCancelled", "eNotEnoughBuffer",
-    "eNoData", "eNoMem", "eSimBusy", "eInvalidFormat", NULL
-};
-
-static const char *ENUM_BOOL[] = {"false", "true", NULL};
-
-// ============================================================================
 // API 列表（按分类）
 // ============================================================================
 

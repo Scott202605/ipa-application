@@ -95,7 +95,6 @@ char* base64_encode(const uint8_t *data, size_t len) {
     // 使用 Glib 的 base64 编码
     char *encoded = NULL;
     
-    size_t out_len;
     #if defined(__GLIB_2_0__)
         // 如果使用 glib，可以调用 g_base64_encode
         // encoded = g_base64_encode(data, len);

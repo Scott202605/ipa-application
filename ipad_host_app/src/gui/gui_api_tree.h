@@ -3,6 +3,7 @@
 
 #include <gtk/gtk.h>
 #include "ipad_app_types.h"
+#include "app_api_definitions.h"
 #include "gui/gui_main.h"
 
 #ifdef __cplusplus
