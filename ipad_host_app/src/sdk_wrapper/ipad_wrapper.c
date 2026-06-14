@@ -1,15 +1,24 @@
 #include "ipad_wrapper.h"
-#include "log.h"
-#include "es10.h"
-#include "es10_typedefs.h"
+#include "config_manager.h"
 #include <stdio.h>
 #include <string.h>
+#include <stdarg.h>
+
+static void wrapper_log(const char *level, const char *format, ...) {
+    va_list args;
+    va_start(args, format);
+    fprintf(stderr, "[%s] ", level);
+    vfprintf(stderr, format, args);
+    fprintf(stderr, "\n");
+    va_end(args);
+}
+
+#define LOGE(...) wrapper_log("ERROR", __VA_ARGS__)
+#define LOGW(...) wrapper_log("WARN", __VA_ARGS__)
+#define LOGI(...) wrapper_log("INFO", __VA_ARGS__)
 
 // SDK 是否已初始化
 static bool g_ipa_initialized = false;
-
-// ES10 实例（用于 Profile 管理）
-static es10_t *g_es10 = NULL;
 
 // 库配置
 static cl_config_t g_cl_config = {
@@ -21,6 +30,32 @@ static cl_config_t g_cl_config = {
     .esipa_sync_package_retrieval_time = 30
 };
 
+static void apply_app_config_to_sdk(void) {
+    const ipad_config_t *app_config = config_get_current();
+    if (!app_config) {
+        return;
+    }
+
+    g_cl_config.es10_driver_selected =
+        app_config->ipa_core.es10_driver == 1 ? ES10_DRIVER_NONE : ES10_DRIVER_AT;
+    g_cl_config.driver_id =
+        app_config->ipa_core.driver_id[0] ? (char *)app_config->ipa_core.driver_id : NULL;
+    if (app_config->ipa_core.log_level >= eLogErr &&
+        app_config->ipa_core.log_level <= eLogTrace) {
+        g_cl_config.log_level = (enum LogLevel)app_config->ipa_core.log_level;
+    }
+    if (app_config->ipa_core.initial_refresh_sleep > 0) {
+        g_cl_config.initial_refresh_sleep = app_config->ipa_core.initial_refresh_sleep;
+    }
+    if (app_config->ipa_core.refresh_max_sleep > 0) {
+        g_cl_config.refresh_max_sleep = app_config->ipa_core.refresh_max_sleep;
+    }
+    if (app_config->ipa_core.esipa_sync_package_retrieval_time > 0) {
+        g_cl_config.esipa_sync_package_retrieval_time =
+            app_config->ipa_core.esipa_sync_package_retrieval_time;
+    }
+}
+
 int ipad_wrapper_init(const char *config_path) {
     if (g_ipa_initialized) {
         LOGI("IPA 已经初始化");
@@ -29,10 +64,8 @@ int ipad_wrapper_init(const char *config_path) {
     
     LOGI("初始化 IPAd SDK, 配置文件：%s", config_path ? config_path : "(默认)");
     
-    // 加载配置文件（如果指定）
-    if (config_path) {
-        LOGI("从文件加载配置：%s", config_path);
-    }
+    (void)config_path;
+    apply_app_config_to_sdk();
     
     // IPA 事件回调
     ipa_event_cb_t event_cb = NULL;
@@ -43,9 +76,6 @@ int ipad_wrapper_init(const char *config_path) {
         LOGE("ipa_init_library 失败：%d", ret);
         return ret;
     }
-    
-    // 创建 ES10 实例（用于 Profile 管理）
-    g_es10 = NULL; // 实际使用时需要初始化 smartcard
     
     g_ipa_initialized = true;
     LOGI("IPAd SDK 初始化成功");
@@ -60,12 +90,6 @@ void ipad_wrapper_deinit(void) {
     }
     
     LOGI("反初始化 IPAd SDK");
-    
-    // 销毁 ES10 实例
-    if (g_es10) {
-        es10__destroy(g_es10);
-        g_es10 = NULL;
-    }
     
     // 停止所有通信服务
     stop_eim_service();
@@ -142,11 +166,6 @@ ErrCode ipad_wrapper_profile_enable(const char *iccid)
     // 调用 ES10 的 EnableProfile API
     // 需要初始化 smartcard 和 ES10 实例
     
-    if (g_es10 != NULL) {
-        // es10__enable_profile(g_es10, iccid, ...);
-        LOGI("调用 ES10 EnableProfile（框架代码）");
-    }
-    
     return eNotImpl; // 框架代码，待完整实现
 }
 
@@ -164,11 +183,6 @@ ErrCode ipad_wrapper_profile_disable(const char *iccid)
     
     LOGI("禁用 Profile: ICCID=%s", iccid);
     
-    if (g_es10 != NULL) {
-        // es10__disable_profile(g_es10, iccid, ...);
-        LOGI("调用 ES10 DisableProfile（框架代码）");
-    }
-    
     return eNotImpl; // 框架代码，待完整实现
 }
 
@@ -185,11 +199,6 @@ ErrCode ipad_wrapper_profile_delete(const char *iccid)
     }
     
     LOGI("删除 Profile: ICCID=%s", iccid);
-    
-    if (g_es10 != NULL) {
-        // es10__delete_profile(g_es10, iccid);
-        LOGI("调用 ES10 DeleteProfile（框架代码）");
-    }
     
     return eNotImpl; // 框架代码，待完整实现
 }

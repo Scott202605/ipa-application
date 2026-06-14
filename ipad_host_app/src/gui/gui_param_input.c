@@ -10,11 +10,6 @@ typedef struct {
 
 static param_input_widgets_t *g_input_widgets = NULL;
 
-static GtkWidget* create_string_input(const char *param_name, const char *default_value);
-static GtkWidget* create_int_input(const char *param_name, int default_value);
-static GtkWidget* create_bool_input(const char *param_name, bool default_value);
-static GtkWidget* create_enum_input(const char *param_name, const char **enum_values);
-
 GtkWidget* gui_param_input_create(main_window_t *window, 
                                   const api_descriptor_t *api) {
     if (g_input_widgets && g_input_widgets->container) {
@@ -173,41 +168,4 @@ int gui_param_input_get_int(main_window_t *window, const char *param_name) {
     (void)window;
     (void)param_name;
     return 0;
-}
-
-static GtkWidget* create_string_input(const char *param_name, const char *default_value) {
-    (void)param_name;
-    GtkWidget *entry = gtk_entry_new();
-    if (default_value) {
-        gtk_entry_set_text(GTK_ENTRY(entry), default_value);
-    }
-    return entry;
-}
-
-static GtkWidget* create_int_input(const char *param_name, int default_value) {
-    (void)param_name;
-    GtkWidget *spin = gtk_spin_button_new_with_range(-1000000, 1000000, 1);
-    gtk_spin_button_set_value(GTK_SPIN_BUTTON(spin), default_value);
-    return spin;
-}
-
-static GtkWidget* create_bool_input(const char *param_name, bool default_value) {
-    (void)param_name;
-    GtkWidget *check = gtk_check_button_new();
-    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(check), default_value);
-    return check;
-}
-
-static GtkWidget* create_enum_input(const char *param_name, const char **enum_values) {
-    (void)param_name;
-    GtkWidget *combo = gtk_combo_box_text_new();
-    
-    if (enum_values) {
-        for (int i = 0; enum_values[i] != NULL; i++) {
-            gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(combo), enum_values[i]);
-        }
-        gtk_combo_box_set_active(GTK_COMBO_BOX(combo), 0);
-    }
-    
-    return combo;
 }

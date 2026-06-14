@@ -47,12 +47,28 @@ static const api_descriptor_t API_INFO[] = {
 
 // Profile 管理 API
 static const api_descriptor_t API_PROFILE[] = {
-    {NULL, NULL, API_CATEGORY_PROFILE, NULL}  // 待扩展
+    {"ipad_wrapper_profile_download", "下载 Profile", API_CATEGORY_PROFILE,
+     "从 SM-DP+ 下载 Profile（当前为框架代码）"},
+    {"ipad_wrapper_profile_enable", "启用 Profile", API_CATEGORY_PROFILE,
+     "按 ICCID 启用 Profile（当前为框架代码）"},
+    {"ipad_wrapper_profile_disable", "禁用 Profile", API_CATEGORY_PROFILE,
+     "按 ICCID 禁用 Profile（当前为框架代码）"},
+    {"ipad_wrapper_profile_delete", "删除 Profile", API_CATEGORY_PROFILE,
+     "按 ICCID 删除 Profile（当前为框架代码）"},
+    {NULL, NULL, API_CATEGORY_PROFILE, NULL}
 };
 
 // 会话管理 API
 static const api_descriptor_t API_SESSION[] = {
-    {NULL, NULL, API_CATEGORY_SESSION, NULL}  // 待扩展
+    {"ipad_wrapper_connect_mqtt", "连接 MQTT 服务", API_CATEGORY_SESSION,
+     "连接 MQTT EIM 服务"},
+    {"ipad_wrapper_connect_lwm2m", "连接 LwM2M 服务", API_CATEGORY_SESSION,
+     "连接 LwM2M EIM 服务"},
+    {"ipad_wrapper_connect_http", "连接 HTTP 服务", API_CATEGORY_SESSION,
+     "连接 HTTP EIM 服务"},
+    {"ipad_wrapper_stop_eim_service", "停止 EIM 服务", API_CATEGORY_SESSION,
+     "停止所有 EIM 通信服务"},
+    {NULL, NULL, API_CATEGORY_SESSION, NULL}
 };
 
 // 通知处理 API

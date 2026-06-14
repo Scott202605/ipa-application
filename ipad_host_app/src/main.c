@@ -5,46 +5,53 @@
 
 #include "gui/gui_main.h"
 #include "ipad_wrapper.h"
+#include "config_manager.h"
 
 static main_window_t *g_main_window = NULL;
 
-// 事件回调函数
-static void on_event_callback(ipa_event_type_t event_type, void *event_data) {
-    if (!g_main_window) return;
-    
-    switch (event_type) {
-        case IPA_EVENT_INITIALIZATION_SUCCESS:
-            gui_main_add_log(g_main_window, "INFO", "IPA 初始化成功");
-            gui_main_update_device_status(g_main_window, true);
-            gui_main_update_euicc_status(g_main_window, "正常");
-            break;
-            
-        case IPA_EVENT_INITIALIZATION_FAILED:
-            gui_main_add_log(g_main_window, "ERROR", "IPA 初始化失败");
-            gui_main_update_device_status(g_main_window, false);
-            gui_main_update_euicc_status(g_main_window, "未知");
-            break;
-            
-        case IPA_EVENT_PROVISIONING_NEEDED:
-            gui_main_add_log(g_main_window, "INFO", "需要配置");
-            break;
-            
-        case IPA_EVENT_SERVICE_CONNECT_SUCCESS:
-            gui_main_add_log(g_main_window, "INFO", "服务连接成功");
-            break;
-            
-        default:
-            gui_main_add_log(g_main_window, "DEBUG", "未知事件类型：%d", event_type);
-            break;
-    }
+static void print_usage(const char *program_name) {
+    printf("Usage: %s [--config <path>] [--help]\n", program_name);
+    printf("\n");
+    printf("Options:\n");
+    printf("  -c, --config <path>  Load JSON configuration from path\n");
+    printf("  -h, --help           Show this help message\n");
 }
 
 int main(int argc, char *argv[]) {
+    const char *config_path = NULL;
+
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0) {
+            print_usage(argv[0]);
+            return EXIT_SUCCESS;
+        }
+        if (strcmp(argv[i], "-c") == 0 || strcmp(argv[i], "--config") == 0) {
+            if (i + 1 >= argc) {
+                fprintf(stderr, "缺少配置文件路径\n");
+                print_usage(argv[0]);
+                return EXIT_FAILURE;
+            }
+            config_path = argv[++i];
+            continue;
+        }
+
+        fprintf(stderr, "未知参数: %s\n", argv[i]);
+        print_usage(argv[0]);
+        return EXIT_FAILURE;
+    }
+
     // 初始化 GTK
-    gtk_init(&argc, &argv);
+    if (!gtk_init_check(&argc, &argv)) {
+        fprintf(stderr, "GTK 初始化失败：请确认已安装 GTK3，且 DISPLAY/Wayland 会话可用。\n");
+        return EXIT_FAILURE;
+    }
     
     // 初始化日志
     printf("IPA 上位机程序启动...\n");
+
+    if (config_init(config_path) != 0) {
+        fprintf(stderr, "配置初始化失败，将继续使用默认配置\n");
+    }
     
     // 创建主窗口
     g_main_window = gui_main_create_window();
@@ -53,12 +60,17 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
     
-    gui_main_add_log(g_main_window, "INFO", "IPA 上位机程序已启动 (版本 1.0.0)");
+    gui_main_add_log(g_main_window, "INFO", "IPA 上位机程序已启动 (版本 1.1.0)");
+    if (config_path) {
+        gui_main_add_log(g_main_window, "INFO", "配置文件: %s", config_path);
+    } else {
+        gui_main_add_log(g_main_window, "INFO", "未指定配置文件，使用默认配置");
+    }
     gui_main_add_log(g_main_window, "INFO", "SDK 版本：%s", ipad_wrapper_get_version());
     
     // 初始化 IPAd SDK
     gui_main_add_log(g_main_window, "INFO", "正在初始化 IPAd SDK...");
-    int init_result = ipad_wrapper_init(NULL);
+    int init_result = ipad_wrapper_init(config_path);
     if (init_result != 0) {
         gui_main_add_log(g_main_window, "ERROR", "SDK 初始化失败：%d", init_result);
     } else {
@@ -77,6 +89,7 @@ int main(int argc, char *argv[]) {
     
     // 销毁窗口
     gui_main_destroy(g_main_window);
+    config_deinit();
     
     return EXIT_SUCCESS;
 }

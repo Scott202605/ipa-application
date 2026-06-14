@@ -19,6 +19,7 @@ typedef struct {
     GtkListStore *api_tree_store;
     
     // 参数输入区
+    GtkWidget *param_container;
     GtkWidget *param_input_frame;
     GtkGrid *param_grid;
     
@@ -79,6 +80,13 @@ void gui_main_update_euicc_status(main_window_t *window, const char *status);
  */
 void gui_main_add_log(main_window_t *window, const char *level, 
                      const char *format, ...);
+
+/**
+ * @brief 设置当前 API 并刷新参数输入面板
+ * @param window 主窗口指针
+ * @param api API 描述符，类别节点传 NULL
+ */
+void gui_main_set_current_api(main_window_t *window, const api_descriptor_t *api);
 
 #ifdef __cplusplus
 }

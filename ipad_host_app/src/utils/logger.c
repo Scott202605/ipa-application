@@ -3,6 +3,7 @@
 #include <string.h>
 #include <time.h>
 #include <stdarg.h>
+#include <stdint.h>
 
 // 简单的日志模块实现
 

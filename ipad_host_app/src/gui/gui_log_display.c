@@ -14,11 +14,6 @@ GtkWidget* gui_log_display_create(void) {
     gtk_widget_override_font(text_view, font_desc);
     pango_font_description_free(font_desc);
     
-    // 设置为左对齐
-    GtkTextTag *tag = gtk_text_buffer_create_tag(
-        gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view)),
-        "left_aligned", "justify", GTK_JUSTIFY_LEFT, NULL);
-    
     return text_view;
 }
 
@@ -42,7 +37,10 @@ void gui_log_display_add_entry(GtkTextView *text_view,
     strftime(time_buffer, sizeof(time_buffer), "%Y-%m-%d %H:%M:%S", tm_info);
     
     // 构建日志文本
-    char *log_text = g_strdup_printf("[%s] %s\n", time_buffer, message);
+    char *log_text = g_strdup_printf("[%s] %s %s\n",
+                                     time_buffer,
+                                     level ? level : "INFO",
+                                     message);
     
     // 获取 buffer
     GtkTextBuffer *buffer = gtk_text_view_get_buffer(text_view);

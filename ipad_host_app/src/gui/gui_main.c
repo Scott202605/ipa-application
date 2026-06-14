@@ -18,11 +18,12 @@
 #define WINDOW_WIDTH 1200
 #define WINDOW_HEIGHT 800
 
-static void on_api_selected(GtkTreeSelection *selection, gpointer user_data);
 static void on_call_api_clicked(GtkWidget *button, gpointer user_data);
 static void on_clear_params_clicked(GtkWidget *button, gpointer user_data);
 static void on_export_log_clicked(GtkWidget *button, gpointer user_data);
 static void on_window_destroy(GtkWidget *window, gpointer user_data);
+static void on_mock_response_toggled(GtkToggleButton *button, gpointer user_data);
+static ErrCode invoke_selected_api(main_window_t *window);
 
 main_window_t* gui_main_create_window(void) {
     main_window_t *window = g_new0(main_window_t, 1);
@@ -84,8 +85,12 @@ main_window_t* gui_main_create_window(void) {
     GtkWidget *param_frame = gtk_frame_new("参数设置");
     gtk_paned_add2(GTK_PANED(center_hbox), param_frame);
     
+    window->param_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    gtk_container_add(GTK_CONTAINER(param_frame), window->param_container);
+
     window->param_input_frame = gui_param_input_create(window, NULL);
-    gtk_container_add(GTK_CONTAINER(param_frame), window->param_input_frame);
+    gtk_box_pack_start(GTK_BOX(window->param_container), window->param_input_frame,
+                       TRUE, TRUE, 0);
     
     // 操作按钮区域
     GtkWidget *button_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
@@ -102,10 +107,8 @@ main_window_t* gui_main_create_window(void) {
     
     window->mock_response_check = gtk_check_button_new_with_label("启用手动响应参数注入");
     gtk_box_pack_start(GTK_BOX(button_box), window->mock_response_check, FALSE, FALSE, 0);
-    g_signal_connect(window->mock_response_check, "toggled", 
-                     G_CALLBACK((void(*)(void))gtk_widget_set_sensitive), 
-                     gtk_check_button_get_active(GTK_CHECK_BUTTON(window->mock_response_check)) ? 
-                     gtk_button_new_with_label("设置") : NULL);
+    g_signal_connect(window->mock_response_check, "toggled",
+                     G_CALLBACK(on_mock_response_toggled), window);
     
     GtkWidget *export_button = gtk_button_new_with_label("导出日志");
     gtk_box_pack_end(GTK_BOX(button_box), export_button, FALSE, FALSE, 0);
@@ -199,7 +202,9 @@ void gui_main_add_log(main_window_t *window, const char *level,
     else color = "#000000";
     
     // 构建带格式的日志文本
-    char *log_text = g_strdup_printf("[%s] <b>%s</b> %s\n", time_buffer, level, message);
+    char *log_text = g_strdup_printf(
+        "[%s] <span foreground='%s'><b>%s</b></span> %s\n",
+        time_buffer, color, level, message);
     
     // 获取 buffer 末尾的 iter
     GtkTextIter end_iter;
@@ -222,48 +227,140 @@ void gui_main_add_log(main_window_t *window, const char *level,
     }
 }
 
-// 回调函数实现
-static void on_api_selected(GtkTreeSelection *selection, gpointer user_data) {
-    main_window_t *window = (main_window_t*)user_data;
-    
+void gui_main_set_current_api(main_window_t *window, const api_descriptor_t *api) {
     if (!window) return;
-    
-    GtkTreeIter iter;
-    GtkTreeModel *model;
-    
-    if (gtk_tree_selection_get_selected(selection, &model, &iter)) {
-        // 获取 API 描述符
-        const api_descriptor_t *api;
-        gtk_tree_model_get(model, &iter, 1, &api, -1);
-        
-        if (api && api->category != API_CATEGORY_INIT) { // INIT 分类是根节点
-            // 清除旧的参数输入框
-            gui_param_input_destroy(window);
-            
-            // 创建新的参数输入框
-            window->param_input_frame = gui_param_input_create(window, api);
-            GtkWidget *parent = gtk_widget_get_parent(window->param_input_frame);
-            if (parent && GTK_IS_BIN(parent)) {
-                gtk_container_add(GTK_CONTAINER(parent), window->param_input_frame);
-                gtk_widget_show_all(window->param_input_frame);
-            }
-            
-            gui_main_add_log(window, "INFO", "选中 API: %s", api->display_name);
-        }
+
+    window->current_api = api;
+
+    if (!window->param_container) return;
+
+    if (window->param_input_frame) {
+        gui_param_input_destroy(window);
+        window->param_input_frame = NULL;
+    }
+
+    window->param_input_frame = gui_param_input_create(window, api);
+    gtk_box_pack_start(GTK_BOX(window->param_container), window->param_input_frame,
+                       TRUE, TRUE, 0);
+    gtk_widget_show_all(window->param_container);
+
+    if (api) {
+        gui_main_add_log(window, "INFO", "选中 API: %s", api->display_name);
     }
 }
 
 static void on_call_api_clicked(GtkWidget *button, gpointer user_data) {
+    (void)button;
     main_window_t *window = (main_window_t*)user_data;
     if (!window || !window->current_api) return;
     
     gui_main_add_log(window, "INFO", "调用 API: %s", window->current_api->display_name);
     
-    // TODO: 实现 API 调用逻辑
-    gui_main_add_log(window, "INFO", "API 调用成功（未实现）");
+    ErrCode ret = invoke_selected_api(window);
+    if (ret == eOk) {
+        gui_main_add_log(window, "INFO", "API 调用成功");
+    } else {
+        gui_main_add_log(window, "ERROR", "API 调用失败: %s", ipad_wrapper_strerror(ret));
+    }
+}
+
+static ErrCode invoke_selected_api(main_window_t *window) {
+    const char *api_name = window->current_api->name;
+
+    if (strcmp(api_name, "ipa__get_eid_cstring") == 0) {
+        char eid[64] = {0};
+        ErrCode ret = ipad_wrapper_get_eid(eid, sizeof(eid));
+        if (ret == eOk) {
+            gui_main_add_log(window, "INFO", "EID: %s", eid);
+        }
+        return ret;
+    }
+
+    if (strcmp(api_name, "ipa__get_euicc_info_1") == 0) {
+        ipa_euicc_info1_t data = {0};
+        ErrCode ret = ipad_wrapper_get_euicc_info_1(&data);
+        if (ret == eOk) {
+            gui_main_add_log(window, "INFO", "euiccInfo1 获取成功");
+            ipad_wrapper_free_euicc_info1(&data);
+        }
+        return ret;
+    }
+
+    if (strcmp(api_name, "ipa__get_euicc_info_2") == 0) {
+        ipa_euicc_info2_t data = {0};
+        ErrCode ret = ipad_wrapper_get_euicc_info_2(&data);
+        if (ret == eOk) {
+            gui_main_add_log(window, "INFO", "euiccInfo2 获取成功");
+            ipad_wrapper_free_euicc_info2(&data);
+        }
+        return ret;
+    }
+
+    if (strcmp(api_name, "ipa__get_certs") == 0) {
+        ipa_pkid_list_data_t data = {0};
+        ErrCode ret = ipad_wrapper_get_certs(&data);
+        if (ret == eOk) {
+            gui_main_add_log(window, "INFO", "证书信息获取成功");
+            ipad_wrapper_free_certs(&data);
+        }
+        return ret;
+    }
+
+    if (strcmp(api_name, "ipa__get_all_profiles_info") == 0) {
+        profile_info_t *profiles = NULL;
+        uint32_t num_profiles = 0;
+        ErrCode ret = ipad_wrapper_get_all_profiles_info(&profiles, &num_profiles);
+        if (ret == eOk) {
+            gui_main_add_log(window, "INFO", "Profile 数量: %u", num_profiles);
+            ipad_wrapper_free_profiles(profiles, num_profiles);
+        }
+        return ret;
+    }
+
+    if (strcmp(api_name, "ipa__get_eim_configuration") == 0) {
+        eim_configuration_data_t config = {0};
+        ErrCode ret = ipad_wrapper_get_eim_configuration(&config);
+        if (ret == eOk) {
+            gui_main_add_log(window, "INFO", "eIM 配置获取成功");
+        }
+        return ret;
+    }
+
+    if (strcmp(api_name, "ipa__execute_fallback_mechanism") == 0) {
+        return ipad_wrapper_execute_fallback();
+    }
+
+    if (strcmp(api_name, "ipa__return_from_fallback") == 0) {
+        return ipad_wrapper_return_from_fallback();
+    }
+
+    if (strcmp(api_name, "ipa__notifications_delivery__all_notifications") == 0) {
+        return ipad_wrapper_notifications_delivery_all();
+    }
+
+    if (strcmp(api_name, "ipa__notifications_delivery__remove_all_notifications") == 0) {
+        return ipad_wrapper_notifications_remove_all();
+    }
+
+    if (strcmp(api_name, "ipa__enable_emergency_profile") == 0) {
+        return ipad_wrapper_enable_emergency_profile();
+    }
+
+    if (strcmp(api_name, "ipa__disable_emergency_profile") == 0) {
+        return ipad_wrapper_disable_emergency_profile();
+    }
+
+    if (strcmp(api_name, "ipad_wrapper_stop_eim_service") == 0) {
+        ipad_wrapper_stop_eim_service();
+        return eOk;
+    }
+
+    gui_main_add_log(window, "WARN", "该 API 需要参数输入/结果结构，当前 GUI 尚未接入");
+    return eNotImpl;
 }
 
 static void on_clear_params_clicked(GtkWidget *button, gpointer user_data) {
+    (void)button;
     main_window_t *window = (main_window_t*)user_data;
     if (!window) return;
     
@@ -273,6 +370,7 @@ static void on_clear_params_clicked(GtkWidget *button, gpointer user_data) {
 }
 
 static void on_export_log_clicked(GtkWidget *button, gpointer user_data) {
+    (void)button;
     main_window_t *window = (main_window_t*)user_data;
     if (!window) return;
     
@@ -280,13 +378,25 @@ static void on_export_log_clicked(GtkWidget *button, gpointer user_data) {
     gui_main_add_log(window, "INFO", "导出日志功能待实现");
 }
 
+static void on_mock_response_toggled(GtkToggleButton *button, gpointer user_data) {
+    main_window_t *window = (main_window_t*)user_data;
+    if (!window) return;
+
+    window->mock_mode_enabled = gtk_toggle_button_get_active(button);
+    gui_main_add_log(window, "INFO", "手动响应参数注入: %s",
+                     window->mock_mode_enabled ? "启用" : "禁用");
+}
+
 static void on_window_destroy(GtkWidget *window, gpointer user_data) {
-    (void)window;
     main_window_t *win = (main_window_t*)user_data;
     
     if (win->log_file) {
         fclose(win->log_file);
         win->log_file = NULL;
+    }
+
+    if (win->window == window) {
+        win->window = NULL;
     }
     
     gtk_main_quit();

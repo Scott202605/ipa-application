@@ -90,12 +90,16 @@ static bool json_get_bool(const char *json, const char *key, bool default_val) {
 }
 
 int config_load(const char *config_path, ipad_config_t *config) {
-    if (!config_path || !config) {
+    if (!config) {
         return -1;
     }
     
     // 先设置默认值
     config_set_defaults_impl(config);
+
+    if (!config_path || config_path[0] == '\0') {
+        return 0;
+    }
     
     // 检查文件是否存在
     struct stat st;
@@ -114,6 +118,10 @@ int config_load(const char *config_path, ipad_config_t *config) {
     // 获取文件大小
     fseek(fp, 0, SEEK_END);
     long file_size = ftell(fp);
+    if (file_size < 0) {
+        fclose(fp);
+        return -1;
+    }
     fseek(fp, 0, SEEK_SET);
     
     // 读取内容
@@ -123,7 +131,12 @@ int config_load(const char *config_path, ipad_config_t *config) {
         return -1;
     }
     
-    fread(json_str, 1, file_size, fp);
+    size_t bytes_read = fread(json_str, 1, (size_t)file_size, fp);
+    if (bytes_read != (size_t)file_size && ferror(fp)) {
+        free(json_str);
+        fclose(fp);
+        return -1;
+    }
     json_str[file_size] = '\0';
     fclose(fp);
     

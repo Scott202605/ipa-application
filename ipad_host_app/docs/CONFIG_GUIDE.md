@@ -144,7 +144,7 @@
 
 ## 配置文件加载顺序
 
-程序启动时按以下顺序查找配置文件：
+目标加载顺序如下。当前代码已有配置解析模块，但主程序尚未完整接入自动查找流程：
 
 1. 命令行参数指定的路径（`-c` 或 `--config`）
 2. 当前目录的 `config.json`
@@ -171,7 +171,7 @@
 
 完整的示例配置文件位于：
 ```
-/workspace/ipad_host_app/config/ipad_config.example.json
+<project-root>/ipad_host_app/config/ipad_config.example.json
 ```
 
 可以复制该文件并根据实际需求修改后使用。

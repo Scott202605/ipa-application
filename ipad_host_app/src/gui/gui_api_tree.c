@@ -51,7 +51,7 @@ void gui_api_tree_populate(GtkTreeStore *tree_store) {
                 gtk_tree_store_append(tree_store, &child_iter, &parent_iter);
                 gtk_tree_store_set(tree_store, &child_iter,
                                   0, api->display_name,
-                                  1, &api,  // 存储 API 描述符指针
+                                  1, api,  // 存储 API 描述符指针
                                   -1);
                 api++;
             }
@@ -87,11 +87,6 @@ static void on_api_tree_selection_changed(GtkTreeSelection *selection, gpointer 
         const api_descriptor_t *api;
         gtk_tree_model_get(model, &iter, 1, &api, -1);
         
-        window->current_api = api;
-        
-        // 如果选中的是 API（不是类别），触发参数输入更新
-        if (api && api->category != API_CATEGORY_INIT) {
-            // 在 gui_main.c 中处理
-        }
+        gui_main_set_current_api(window, api);
     }
 }

@@ -19,7 +19,7 @@
 ## 🏗️ 项目结构
 
 ```
-/workspace/
+<project-root>/
 ├── README.md                    # 本文件
 ├── quickstart.sh                # 快速启动脚本
 ├── build_sdk.sh                 # SDK 编译脚本
@@ -44,11 +44,10 @@
 - ✅ 获取所有 Profile 信息
 - ✅ 获取 eIM 配置信息
 
-### 2. Profile 管理 (v1.1.0 新增)
-- ✅ Profile 下载（从 SM-DP+ 服务器）
-- ✅ Profile 启用
-- ✅ Profile 禁用
-- ✅ Profile 删除
+### 2. Profile 管理 (v1.1.0 框架)
+- ⚠️ 已声明 wrapper 接口和 GUI 分类
+- ⚠️ 下载、启用、禁用、删除当前仍返回 `eNotImpl`
+- 🔧 待补齐 ES10、SM-DP+ 通信和参数输入链路
 
 ### 3. 会话管理 (v1.1.0 新增)
 - ✅ MQTT 连接（支持 TLS）
@@ -70,10 +69,10 @@
 - ✅ 发送单个通知
 - ✅ 移除通知（单个/全部）
 
-### 7. 配置管理 (v1.1.0 新增)
-- ✅ JSON 配置文件支持
-- ✅ 配置验证和默认值回退
-- ✅ 支持所有核心参数配置
+### 7. 配置管理 (v1.1.0 部分完成)
+- ✅ JSON 配置结构、示例文件、解析和验证模块
+- ⚠️ 主程序尚未按文档中的加载顺序接入配置文件
+- 🔧 待把配置值应用到 SDK 初始化、GUI 尺寸和通信参数
 
 ### 8. 调试功能
 - ✅ 手动响应参数注入（模拟错误场景）
@@ -85,7 +84,7 @@
 ### 一键启动
 
 ```bash
-cd /workspace
+cd <project-root>
 ./quickstart.sh
 ```
 
@@ -107,14 +106,14 @@ sudo apt-get install -y cmake gcc libgtk-3-dev libcurl4-openssl-dev libssl-dev p
 #### 2. 编译 SDK
 
 ```bash
-cd /workspace
+cd <project-root>
 ./build_sdk.sh
 ```
 
 #### 3. 编译上位机程序
 
 ```bash
-cd /workspace/ipad_host_app
+cd <project-root>/ipad_host_app
 mkdir -p build && cd build
 cmake -DCMAKE_BUILD_TYPE=Release ..
 make -j$(nproc)
@@ -263,12 +262,13 @@ valgrind --leak-check=full --show-leak-kinds=all ./ipad_host_app
 
 ## 📝 开发计划
 
-### 已实现功能 (v1.1.0)
+### 已实现/接入状态 (v1.1.0)
 
-- ✅ Profile 管理 API（下载、启用、禁用、删除）
-- ✅ 会话管理 API（MQTT/LwM2M 通信）
-- ✅ 完整的配置文件支持
-- ✅ 配置文档和使用指南
+- ✅ 信息查询、Fallback、应急 Profile、通知处理等 wrapper 已接入
+- ⚠️ Profile 管理 API 仍为框架代码，当前返回 `eNotImpl`
+- ⚠️ 会话管理 wrapper 已声明，GUI 参数化调用仍需补齐
+- ⚠️ 配置文件模块已实现基础解析，主程序加载和应用尚未完整接入
+- ✅ 配置文档和使用指南已提供，但需随实现继续同步
 
 ### 待实现功能
 

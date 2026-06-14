@@ -3,6 +3,8 @@
 #include <string.h>
 #include <stdarg.h>
 #include <time.h>
+#include <stdint.h>
+#include "json_helper.h"
 
 // 简单的 JSON 辅助函数
 

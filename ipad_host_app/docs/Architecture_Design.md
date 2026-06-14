@@ -267,7 +267,9 @@ ErrCode call_api(void) {
 }
 ```
 
-## 7. 配置管理（待实现）
+## 7. 配置管理（部分实现）
+
+当前已有 `config_manager.c/h`、`json_helper.c` 和 `config/ipad_config.example.json`，可完成默认值设置、JSON 解析、基础校验和保存。仍需补齐的部分是：主程序启动时按配置加载顺序查找文件、把配置应用到 `ipad_wrapper_init()` 的 SDK 配置、把 UI 配置应用到窗口初始化，并为 TLS/DTLS 证书路径建立实际使用链路。
 
 ### 7.1 配置文件格式
 
@@ -290,7 +292,7 @@ ErrCode call_api(void) {
 }
 ```
 
-### 7.2 配置加载
+### 7.2 配置加载目标
 
 ```c
 int load_config(const char *config_path) {

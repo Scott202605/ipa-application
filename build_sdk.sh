@@ -3,7 +3,8 @@
 
 set -e
 
-SDK_DIR="${1:-/workspace/ipa_sdk_pc}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SDK_DIR="${1:-${SCRIPT_DIR}/ipa_sdk_pc}"
 BUILD_TYPE="${2:-Release}"
 BUILD_DIR="${SDK_DIR}/build"
 

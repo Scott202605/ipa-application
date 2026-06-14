@@ -14,14 +14,30 @@ option(ENABLE_DEBUG "启用调试功能" ON)
 
 # 查找依赖包
 find_package(PkgConfig REQUIRED)
+find_package(CURL REQUIRED)
+find_package(OpenSSL REQUIRED)
+find_package(Threads REQUIRED)
 pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
 
-# IPAd SDK 路径
-set(IPAD_SDK_ROOT "${CMAKE_SOURCE_DIR}/../ipa_sdk_pc")
+# IPAd SDK 路径。这里需要指向 SDK 源码根目录，而不是 dist 目录，
+# 因为当前 host app 还直接依赖 SDK 源码树中的内部头文件。
+set(IPAD_SDK_ROOT "${CMAKE_SOURCE_DIR}/../ipa_sdk_pc" CACHE PATH "IPAd SDK source root")
+if(NOT EXISTS "${IPAD_SDK_ROOT}/include/ipa.h")
+    message(FATAL_ERROR "IPAD_SDK_ROOT must point to the ipa_sdk_pc source directory: ${IPAD_SDK_ROOT}")
+endif()
+
+find_library(IPA_LIBRARY
+    NAMES ipa
+    PATHS
+        "${IPAD_SDK_ROOT}/build/ipa-src/hw/linux"
+        "${IPAD_SDK_ROOT}/dist/lib"
+    REQUIRED
+)
 
 # 添加头文件搜索路径
 include_directories(
     ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_SOURCE_DIR}/src
     ${PROJECT_SOURCE_DIR}/src/utils
     ${IPAD_SDK_ROOT}/include
     ${IPAD_SDK_ROOT}/ipa-src/profile-assistant-commons/core
@@ -30,11 +46,7 @@ include_directories(
     ${GTK3_INCLUDE_DIRS}
 )
 
-# 链接库搜索路径
-link_directories(
-    ${IPAD_SDK_ROOT}/build
-    ${GTK3_LIBRARY_DIRS}
-)
+link_directories(${GTK3_LIBRARY_DIRS})
 
 # 源文件列表
 set(SOURCES
@@ -58,12 +70,17 @@ add_executable(ipad_host_app ${SOURCES})
 
 # 链接库
 target_link_libraries(ipad_host_app
-    ipad-core
+    ${IPA_LIBRARY}
     ${GTK3_LIBRARIES}
-    curl
-    ssl
-    crypto
-    pthread
+    CURL::libcurl
+    OpenSSL::SSL
+    OpenSSL::Crypto
+    Threads::Threads
+)
+
+set_target_properties(ipad_host_app PROPERTIES
+    BUILD_RPATH "${IPAD_SDK_ROOT}/build/ipa-src/hw/linux;${IPAD_SDK_ROOT}/dist/lib"
+    INSTALL_RPATH "$ORIGIN/../lib"
 )
 
 # 编译选项
@@ -87,5 +104,7 @@ endif()
 
 # 安装规则
 install(TARGETS ipad_host_app DESTINATION bin)
-install(DIRECTORY resources/ DESTINATION share/ipad_host_app)
+if(EXISTS "${CMAKE_SOURCE_DIR}/resources")
+    install(DIRECTORY resources/ DESTINATION share/ipad_host_app)
+endif()
 install(FILES config/ipad_config.example.json DESTINATION share/ipad_host_app)

@@ -40,14 +40,14 @@ int parse_tlv_data(
     char *output,
     size_t output_size)
 {
-    if (!tlv_buffer || !output || buffer_size == 0) {
+    if (!tlv_buffer || !output || buffer_size == 0 || output_size < 4) {
         return -1;
     }
     
     size_t offset = 0;
     size_t out_offset = 0;
     
-    while (offset < buffer_size && out_offset < output_size - 3) {
+    while (offset + 1 < buffer_size && out_offset < output_size - 3) {
         uint8_t tag = tlv_buffer[offset++];
         
         // 解析长度
@@ -61,6 +61,10 @@ int parse_tlv_data(
             for (int i = 0; i < num_bytes && offset < buffer_size; i++) {
                 length = (length << 8) | tlv_buffer[offset++];
             }
+        }
+
+        if (length > buffer_size - offset) {
+            return -1;
         }
         
         // 添加标签
@@ -99,7 +103,7 @@ int parse_json_response(
     char *value_out,
     size_t value_size)
 {
-    if (!json_str || !key || !value_out) {
+    if (!json_str || !key || !value_out || value_size == 0) {
         return -1;
     }
     
@@ -119,9 +123,9 @@ int parse_json_response(
         return -1;
     }
     
-    // 跳过空白和引号
+    // 跳过空白
     const char *value_start = colon + 1;
-    while (*value_start == ' ' || *value_start == '\t' || *value_start == '"') {
+    while (*value_start == ' ' || *value_start == '\t') {
         value_start++;
     }
     

@@ -3,7 +3,7 @@
 ## 目录结构
 
 ```
-/workspace/
+<project-root>/
 ├── README.md                      # 项目说明文档
 ├── PROJECT_STRUCTURE.md           # 本文件
 ├── build_sdk.sh                   # SDK 编译脚本
@@ -123,21 +123,21 @@ IPAd SDK (底层实现)
 ### 1. 编译 SDK
 
 ```bash
-cd /workspace/ipa_sdk_pc
+cd <project-root>/ipa_sdk_pc
 mkdir build && cd build
 cmake ..
 make -j$(nproc)
 ```
 
 输出：
-- `build/libipa-core.a` (静态库)
-- `build/libipa-core.so` (动态库)
-- `dist/include/` (头文件)
+- `build/ipa-src/hw/linux/libipa.a` (静态库)
+- `build/ipa-src/hw/linux/libipa.so` (动态库，启用共享库构建时)
+- `dist/include/` 和 `dist/lib/` (脚本整理后的头文件和库文件)
 
 ### 2. 编译上位机程序
 
 ```bash
-cd /workspace/ipad_host_app
+cd <project-root>/ipad_host_app
 mkdir build && cd build
 cmake ..
 make -j$(nproc)
@@ -154,7 +154,7 @@ ipad_host_app
 ├── libcurl (HTTP 通信)
 ├── OpenSSL (加密)
 ├── pthread (多线程)
-└── ipa-core (SDK 核心库)
+└── ipa (SDK 核心库；CMake target 为 ipa-core，输出库名为 libipa)
 ```
 
 ## 文件说明

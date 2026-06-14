@@ -1,0 +1,55 @@
+name: Ubuntu Build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build on Ubuntu 22.04
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            cmake \
+            pkg-config \
+            libgtk-3-dev \
+            libcurl4-openssl-dev \
+            libssl-dev \
+            libserialport-dev \
+            libpaho-mqtt-dev
+
+      - name: Configure SDK
+        run: cmake -S ipa_sdk_pc -B ipa_sdk_pc/build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build SDK
+        run: cmake --build ipa_sdk_pc/build --parallel
+
+      - name: Prepare SDK dist
+        shell: bash
+        run: |
+          mkdir -p ipa_sdk_pc/dist/include ipa_sdk_pc/dist/lib
+          cp -r ipa_sdk_pc/include/. ipa_sdk_pc/dist/include/
+          find ipa_sdk_pc/build -type f \( -name 'libipa.a' -o -name 'libipa.so' -o -name 'libipa.so.*' \) -exec cp {} ipa_sdk_pc/dist/lib/ \;
+          test -n "$(find ipa_sdk_pc/dist/lib -type f -name 'libipa.*' -print -quit)"
+
+      - name: Configure host app
+        run: cmake -S ipad_host_app -B ipad_host_app/build -DCMAKE_BUILD_TYPE=Release -DIPAD_SDK_ROOT="${GITHUB_WORKSPACE}/ipa_sdk_pc"
+
+      - name: Build host app
+        run: cmake --build ipad_host_app/build --parallel
+
+      - name: Inspect binary dependencies
+        run: ldd ipad_host_app/build/ipad_host_app

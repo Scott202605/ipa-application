@@ -4,7 +4,7 @@
 
 **项目名称**: IPA 上位机程序 (IPA Host Application)  
 **开发日期**: 2026-02-04  
-**开发状态**: 架构完成，核心模块已实现，部分功能待扩展  
+**开发状态**: 架构和基础 GUI 已完成；信息查询、Fallback、通知、应急 Profile 等 wrapper 已接入；Profile 管理、会话管理 GUI 参数化调用、异步执行和配置加载仍需继续实现
 **技术栈**: C / GTK3 / CMake / Linux
 
 ## 已完成工作
@@ -18,10 +18,10 @@
 - ✅ 实现 15+ 个 SDK API 的包装函数
 
 **SDK 核心文件**:
-- `/workspace/ipa_sdk_pc/include/ipa.h` - 主 API 头文件 (320 行)
-- `/workspace/ipa_sdk_pc/ipa-src/ipa.c` - 主实现 (4551 行)
-- `/workspace/ipa_sdk_pc/include/es10_typedefs.h` - ES10+ 类型定义
-- `/workspace/ipa_sdk_pc/include/ipa_core.h` - 核心功能头文件
+- `<project-root>/ipa_sdk_pc/include/ipa.h` - 主 API 头文件 (320 行)
+- `<project-root>/ipa_sdk_pc/ipa-src/ipa.c` - 主实现 (4551 行)
+- `<project-root>/ipa_sdk_pc/include/es10_typedefs.h` - ES10+ 类型定义
+- `<project-root>/ipa_sdk_pc/include/ipa_core.h` - 核心功能头文件
 
 ### 2. 上位机程序架构 ✅
 
@@ -31,8 +31,8 @@
 - ✅ 实现主程序入口和消息循环
 
 **核心文件**:
-- `/workspace/ipad_host_app/CMakeLists.txt` - 构建配置
-- `/workspace/ipad_host_app/src/main.c` - 程序入口 (70 行)
+- `<project-root>/ipad_host_app/CMakeLists.txt` - 构建配置
+- `<project-root>/ipad_host_app/src/main.c` - 程序入口 (70 行)
 
 ### 3. GUI 界面实现 ✅
 
@@ -58,8 +58,8 @@
 - ✅ 错误处理工具函数
 
 **封装文件**:
-- `/workspace/ipad_host_app/include/ipad_wrapper.h` - 封装头文件
-- `/workspace/ipad_host_app/src/sdk_wrapper/ipad_wrapper.c` - 封装实现 (250+ 行)
+- `<project-root>/ipad_host_app/include/ipad_wrapper.h` - 封装头文件
+- `<project-root>/ipad_host_app/src/sdk_wrapper/ipad_wrapper.c` - 封装实现 (250+ 行)
 
 ### 5. 业务逻辑层 ✅
 
@@ -122,7 +122,7 @@
 
 ## 功能实现状态
 
-### ✅ 已实现功能 (90%)
+### ✅ 已实现/已接入功能
 
 - [x] 项目架构设计
 - [x] SDK 封装层
@@ -137,11 +137,11 @@
 - [x] 构建系统
 - [x] 文档体系
 
-### ⏳ 待扩展功能 (10%)
+### ⏳ 待扩展功能
 
-- [ ] Profile 管理 API（下载、启用、禁用、删除）
-- [ ] 会话管理 API（MQTT/LwM2M 通信）
-- [ ] 完整的配置文件支持
+- [ ] Profile 管理 API（当前为 wrapper 占位，返回 `eNotImpl`）
+- [ ] 会话管理 API（wrapper 已声明，GUI 尚未完整暴露和参数化调用）
+- [ ] 完整的配置文件支持（已有解析模块和示例，主程序尚未按加载顺序接入）
 - [ ] 异步 API 调用（避免 GUI 卡顿）
 - [ ] 单元测试
 - [ ] 多语言支持
@@ -200,7 +200,7 @@ ErrCode -> 错误处理 -> 日志记录 -> 界面提示 -> 资源清理
 ### 快速启动
 
 ```bash
-cd /workspace
+cd <project-root>
 ./quickstart.sh
 ```
 
@@ -317,7 +317,7 @@ make -j$(nproc)
 
 ---
 
-**项目状态**: ✅ 架构完成，核心功能已实现  
+**项目状态**: ⚠️ 架构完成，核心框架已具备；仍需补齐未实现 API、配置接入和构建验证
 **下一步**: 编译 SDK 并进行实测  
 **创建日期**: 2026-02-04
 

@@ -23,14 +23,14 @@ sudo apt-get install -y cmake gcc libgtk-3-dev libcurl4-openssl-dev libssl-dev p
 ### 3.2 编译 SDK
 
 ```bash
-cd /workspace
+cd <project-root>
 ./build_sdk.sh
 ```
 
 ### 3.3 编译上位机程序
 
 ```bash
-cd /workspace
+cd <project-root>
 ./build_all.sh
 ```
 
@@ -81,7 +81,7 @@ cd /workspace
 ### 5.1 启动程序
 
 ```bash
-cd /workspace/ipad_host_app/build
+cd <project-root>/ipad_host_app/build
 ./ipad_host_app
 ```
 
@@ -169,7 +169,7 @@ cd /workspace/ipad_host_app/build
 **解决**:
 ```bash
 # 设置 LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=/workspace/ipa_sdk_pc/dist/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=<project-root>/ipa_sdk_pc/dist/lib:$LD_LIBRARY_PATH
 ./ipad_host_app
 ```
 

@@ -3,7 +3,7 @@
 
 set -e
 
-PROJECT_ROOT="/workspace"
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SDK_DIR="${PROJECT_ROOT}/ipa_sdk_pc"
 HOST_APP_DIR="${PROJECT_ROOT}/ipad_host_app"
 BUILD_DIR="${HOST_APP_DIR}/build"
@@ -20,12 +20,25 @@ echo ""
 
 # Step 2: Install SDK dependencies
 echo "[Step 2/3] Installing system dependencies..."
-sudo apt-get update -qq
-sudo apt-get install -y -qq libgtk-3-dev libcurl4-openssl-dev libssl-dev pkg-config > /dev/null 2>&1 || {
+if command -v apt-get >/dev/null 2>&1; then
+    SUDO=""
+    if [ "$(id -u)" -ne 0 ]; then
+        SUDO="sudo"
+    fi
+    ${SUDO} apt-get update -qq
+    ${SUDO} apt-get install -y -qq \
+        build-essential cmake pkg-config \
+        libgtk-3-dev libcurl4-openssl-dev libssl-dev \
+        libserialport-dev libpaho-mqtt-dev > /dev/null 2>&1 || {
+        echo "Warning: Could not install dependencies automatically"
+        echo "Please install manually:"
+        echo "  sudo apt-get install build-essential cmake pkg-config libgtk-3-dev libcurl4-openssl-dev libssl-dev libserialport-dev libpaho-mqtt-dev"
+    }
+else
     echo "Warning: Could not install dependencies automatically"
-    echo "Please install manually:"
-    echo "  sudo apt-get install libgtk-3-dev libcurl4-openssl-dev libssl-dev pkg-config"
-}
+    echo "Please install the equivalent packages manually:"
+    echo "  sudo apt-get install build-essential cmake pkg-config libgtk-3-dev libcurl4-openssl-dev libssl-dev libserialport-dev libpaho-mqtt-dev"
+fi
 echo ""
 
 # Step 3: Build host application
@@ -35,7 +48,7 @@ mkdir -p "${BUILD_DIR}"
 cd "${BUILD_DIR}"
 
 cmake -DCMAKE_BUILD_TYPE=Release \
-      -DIPAD_SDK_ROOT="${SDK_DIR}/dist" \
+      -DIPAD_SDK_ROOT="${SDK_DIR}" \
       ..
 
 make -j$(nproc)
