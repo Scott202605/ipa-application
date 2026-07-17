@@ -26,13 +26,13 @@ static ipad_error_t execute_worker_task(ipad_task_t *out, const char *request) {
     char response[512];
 
     worker_process_init(&worker);
-    if (worker_process_start(&worker, g_runtime.worker_path) != 0) {
+    if (worker_process_start(&worker, g_runtime.worker_path, "mock", 10000) != 0) {
         task_store_update_state(out->task_id, TASK_FAILED, "worker_start", "worker_unavailable");
         task_store_get(out->task_id, out);
         return IPAD_ERR_WORKER_UNAVAILABLE;
     }
     task_store_update_state(out->task_id, TASK_RUNNING, "worker_execute", "");
-    if (worker_process_call(&worker, request, response, sizeof(response)) != 0) {
+    if (worker_process_call(&worker, request, response, sizeof(response), 10000) != 0) {
         worker_process_stop(&worker);
         task_store_update_state(out->task_id, TASK_FAILED, "worker_execute", "worker_failed");
         task_store_get(out->task_id, out);

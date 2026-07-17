@@ -13,12 +13,16 @@ typedef struct {
     worker_status_t status;
     int pid;
     int restart_count;
+    char sdk_mode[16];
+    char last_error[64];
 } worker_supervisor_t;
 
 void worker_supervisor_init(worker_supervisor_t *supervisor);
 int worker_supervisor_start_mock(worker_supervisor_t *supervisor);
 int worker_supervisor_stop(worker_supervisor_t *supervisor);
 worker_status_t worker_supervisor_status(worker_supervisor_t *supervisor);
+const char *worker_supervisor_sdk_mode(worker_supervisor_t *supervisor);
+const char *worker_supervisor_last_error(worker_supervisor_t *supervisor);
 const char *worker_status_to_string(worker_status_t status);
 
 #endif

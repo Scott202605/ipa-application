@@ -23,6 +23,14 @@ int main(void) {
         fprintf(stderr, "status string mismatch\n");
         return 1;
     }
+    if (strcmp(worker_supervisor_sdk_mode(&supervisor), "mock") != 0) {
+        fprintf(stderr, "sdk mode mismatch\n");
+        return 1;
+    }
+    if (strcmp(worker_supervisor_last_error(&supervisor), "") != 0) {
+        fprintf(stderr, "last error mismatch\n");
+        return 1;
+    }
     if (worker_supervisor_stop(&supervisor) != 0) {
         fprintf(stderr, "mock worker stop failed\n");
         return 1;

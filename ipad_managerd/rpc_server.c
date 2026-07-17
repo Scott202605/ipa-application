@@ -54,10 +54,14 @@ int rpc_handle_request(const char *request, char *response, size_t response_size
     }
 
     if (strcmp(method, IPAD_METHOD_SYSTEM_STATUS) == 0) {
-        char result[160];
+        worker_supervisor_t *current_worker = worker();
+        char result[256];
         snprintf(result, sizeof(result),
-                 "{\"daemon\":\"running\",\"worker\":\"%s\"}",
-                 worker_status_to_string(worker_supervisor_status(worker())));
+                 "{\"daemon\":\"running\",\"worker\":\"%s\",\"worker_pid\":%d,\"sdk_mode\":\"%s\",\"last_error\":\"%s\"}",
+                 worker_status_to_string(worker_supervisor_status(current_worker)),
+                 current_worker->pid,
+                 worker_supervisor_sdk_mode(current_worker),
+                 worker_supervisor_last_error(current_worker));
         audit_log_write("local", method, "", "ok");
         return ipad_json_write_result(response, response_size, id, result);
     }

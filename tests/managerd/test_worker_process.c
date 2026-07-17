@@ -11,11 +11,11 @@ int main(int argc, char **argv) {
         return 2;
     }
     worker_process_init(&process);
-    if (worker_process_start(&process, argv[1]) != 0) {
+    if (worker_process_start(&process, argv[1], "mock", 10000) != 0) {
         fprintf(stderr, "worker start failed\n");
         return 1;
     }
-    if (worker_process_call(&process, "{\"id\":1,\"op\":\"profile.enable\",\"task_id\":\"task-1\",\"iccid\":\"89860123456789012345\"}", response, sizeof(response)) != 0) {
+    if (worker_process_call(&process, "{\"id\":1,\"op\":\"profile.enable\",\"task_id\":\"task-1\",\"iccid\":\"89860123456789012345\"}", response, sizeof(response), 10000) != 0) {
         worker_process_stop(&process);
         return 1;
     }
