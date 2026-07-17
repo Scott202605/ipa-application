@@ -1,3 +1,7 @@
 add_executable(test_ipad_json test_ipad_json.c)
 target_link_libraries(test_ipad_json PRIVATE ipad_common)
 add_test(NAME test_ipad_json COMMAND test_ipad_json)
+
+add_executable(test_ipad_socket test_ipad_socket.c)
+target_link_libraries(test_ipad_socket PRIVATE ipad_common)
+add_test(NAME test_ipad_socket COMMAND test_ipad_socket)

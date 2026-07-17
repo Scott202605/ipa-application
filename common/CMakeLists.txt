@@ -1,5 +1,6 @@
 add_library(ipad_common STATIC
     ipad_json.c
+    ipad_socket.c
 )
 
 target_include_directories(ipad_common PUBLIC
