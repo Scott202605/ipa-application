@@ -13,3 +13,7 @@ add_test(NAME test_sdk_error_mapping COMMAND test_sdk_error_mapping)
 add_executable(test_sdk_profile_facade test_sdk_profile_facade.c)
 target_link_libraries(test_sdk_profile_facade PRIVATE ipad_worker_testlib ipad_common)
 add_test(NAME test_sdk_profile_facade COMMAND test_sdk_profile_facade)
+
+add_executable(test_sdk_lifecycle test_sdk_lifecycle.c)
+target_link_libraries(test_sdk_lifecycle PRIVATE ipad_worker_testlib ipad_common)
+add_test(NAME test_sdk_lifecycle COMMAND test_sdk_lifecycle)

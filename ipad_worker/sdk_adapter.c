@@ -92,6 +92,19 @@ int sdk_adapter_is_initialized(const sdk_adapter_t *adapter) {
     return adapter && adapter->initialized;
 }
 
+ipad_error_t sdk_adapter_sdk_status(const sdk_adapter_t *adapter, char *out_json, size_t out_size) {
+    int written;
+    if (!adapter || !out_json || out_size == 0) {
+        return IPAD_ERR_INVALID_PARAMS;
+    }
+    written = snprintf(out_json, out_size,
+                       "{\"mode\":\"%s\",\"initialized\":%s,\"transport\":\"%s\"}",
+                       sdk_adapter_mode(adapter),
+                       sdk_adapter_is_initialized(adapter) ? "true" : "false",
+                       adapter->transport[0] ? adapter->transport : sdk_adapter_mode(adapter));
+    return written > 0 && (size_t)written < out_size ? IPAD_OK : IPAD_ERR_INTERNAL;
+}
+
 static ipad_error_t require_ready(sdk_adapter_t *adapter) {
     return adapter && adapter->initialized ? IPAD_OK : IPAD_ERR_SDK_NOT_INITIALIZED;
 }
