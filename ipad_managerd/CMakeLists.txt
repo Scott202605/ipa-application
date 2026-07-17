@@ -1,6 +1,7 @@
 set(IPAD_MANAGERD_SOURCES
     rpc_server.c
     worker_supervisor.c
+    worker_process.c
     task_store.c
     audit_log.c
     profile_tasks.c

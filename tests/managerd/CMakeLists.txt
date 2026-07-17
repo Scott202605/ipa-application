@@ -13,6 +13,7 @@ add_test(NAME test_task_store COMMAND test_task_store)
 add_executable(test_profile_tasks test_profile_tasks.c)
 target_link_libraries(test_profile_tasks PRIVATE ipad_managerd_testlib ipad_common)
 add_test(NAME test_profile_tasks COMMAND test_profile_tasks)
+add_test(NAME test_profile_tasks_worker COMMAND test_profile_tasks $<TARGET_FILE:ipad-sdk-worker>)
 
 add_executable(test_managerd_socket test_managerd_socket.c)
 target_link_libraries(test_managerd_socket PRIVATE ipad_common)
@@ -28,3 +29,7 @@ add_test(NAME test_ipadctl_socket
     $<TARGET_FILE:ipad-managerd>
     $<TARGET_FILE:ipadctl>
     ${CMAKE_CURRENT_BINARY_DIR}/ipadctl-test.sock)
+
+add_executable(test_worker_process test_worker_process.c)
+target_link_libraries(test_worker_process PRIVATE ipad_managerd_testlib ipad_common)
+add_test(NAME test_worker_process COMMAND test_worker_process $<TARGET_FILE:ipad-sdk-worker>)
