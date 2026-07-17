@@ -19,7 +19,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install system dependencies
         run: |
@@ -62,6 +62,12 @@ jobs:
           cp -r ipa_sdk_pc/include/. ipa_sdk_pc/dist/include/
           find ipa_sdk_pc/build -type f \( -name 'libipa.a' -o -name 'libipa.so' -o -name 'libipa.so.*' \) -exec cp {} ipa_sdk_pc/dist/lib/ \;
           test -n "$(find ipa_sdk_pc/dist/lib -type f -name 'libipa.*' -print -quit)"
+
+      - name: Configure manager components with real SDK headers
+        run: cmake -S . -B build-manager-real-sdk -DIPAD_BUILD_TESTS=ON -DIPAD_WORKER_ENABLE_REAL_SDK=ON
+
+      - name: Build manager components with real SDK headers
+        run: cmake --build build-manager-real-sdk --parallel
 
       - name: Configure host app
         run: cmake -S ipad_host_app -B ipad_host_app/build -DCMAKE_BUILD_TYPE=Release -DIPAD_SDK_ROOT="${GITHUB_WORKSPACE}/ipa_sdk_pc"
