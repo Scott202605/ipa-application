@@ -1,0 +1,3 @@
+add_executable(test_diagnostics test_diagnostics.c)
+target_link_libraries(test_diagnostics PRIVATE ipadctl_testlib ipad_common)
+add_test(NAME test_diagnostics COMMAND test_diagnostics)
