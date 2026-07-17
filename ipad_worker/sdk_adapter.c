@@ -109,15 +109,21 @@ static ipad_error_t require_ready(sdk_adapter_t *adapter) {
     return adapter && adapter->initialized ? IPAD_OK : IPAD_ERR_SDK_NOT_INITIALIZED;
 }
 
-ipad_error_t sdk_adapter_profile_download(sdk_adapter_t *adapter, const char *smdp, const char *matching_id) {
+static int valid_activation_code(const char *activation_code) {
+    return activation_code &&
+           strncmp(activation_code, "LPA:", 4) == 0 &&
+           strlen(activation_code) < 256;
+}
+
+ipad_error_t sdk_adapter_profile_download(sdk_adapter_t *adapter, const char *activation_code) {
     if (require_ready(adapter) != IPAD_OK) {
         return IPAD_ERR_SDK_NOT_INITIALIZED;
     }
-    if (!smdp || smdp[0] == '\0' || !matching_id || matching_id[0] == '\0') {
+    if (!valid_activation_code(activation_code)) {
         return IPAD_ERR_INVALID_PARAMS;
     }
     if (adapter->mode == SDK_MODE_REAL) {
-        fputs("real profile download requires product activation-code mapping before enabling SDK call\n", stderr);
+        fputs("real profile download requires SDK activation-code wrapper before enabling SDK call\n", stderr);
         return IPAD_ERR_SDK_FAILED;
     }
     return IPAD_OK;

@@ -16,6 +16,9 @@ int main(int argc, char **argv) {
     if (profile_task_start_download("smdp.example.com", "ABCD", &task) != IPAD_OK) return 1;
     if (strcmp(task.method, "profile.download") != 0) return 1;
     if (task.state != TASK_COMPLETED) return 1;
+    if (profile_task_start_download_activation("LPA:1$smdp.example.com$ABCD", &task) != IPAD_OK) return 1;
+    if (strcmp(task.method, "profile.download") != 0) return 1;
+    if (task.state != TASK_COMPLETED) return 1;
     if (profile_task_start_enable("89860123456789012345", &task) != IPAD_OK) return 1;
     if (strcmp(task.method, "profile.enable") != 0) return 1;
     if (task.state != TASK_COMPLETED) return 1;

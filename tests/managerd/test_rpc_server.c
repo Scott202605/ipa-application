@@ -32,6 +32,9 @@ int main(void) {
     if (rpc_handle_request("{\"jsonrpc\":\"2.0\",\"id\":3,\"method\":\"profile.download\",\"smdp\":\"smdp.example.com\",\"matching_id\":\"ABCD\"}", response, sizeof(response)) != 0) return 1;
     if (require_contains(response, "\"state\":\"completed\"")) return 1;
 
+    if (rpc_handle_request("{\"jsonrpc\":\"2.0\",\"id\":13,\"method\":\"profile.download\",\"activation_code\":\"LPA:1$smdp.example.com$ABCD\"}", response, sizeof(response)) != 0) return 1;
+    if (require_contains(response, "\"state\":\"completed\"")) return 1;
+
     if (rpc_handle_request("{\"jsonrpc\":\"2.0\",\"id\":4,\"method\":\"unknown.method\"}", response, sizeof(response)) != 0) return 1;
     if (require_contains(response, "method_not_found")) return 1;
 

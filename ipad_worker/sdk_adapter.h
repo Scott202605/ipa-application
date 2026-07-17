@@ -23,7 +23,7 @@ const char *sdk_adapter_mode(const sdk_adapter_t *adapter);
 int sdk_adapter_is_initialized(const sdk_adapter_t *adapter);
 ipad_error_t sdk_adapter_sdk_status(const sdk_adapter_t *adapter, char *out_json, size_t out_size);
 ipad_error_t sdk_adapter_map_errcode(int sdk_error);
-ipad_error_t sdk_adapter_profile_download(sdk_adapter_t *adapter, const char *smdp, const char *matching_id);
+ipad_error_t sdk_adapter_profile_download(sdk_adapter_t *adapter, const char *activation_code);
 ipad_error_t sdk_adapter_profile_enable(sdk_adapter_t *adapter, const char *iccid);
 ipad_error_t sdk_adapter_profile_disable(sdk_adapter_t *adapter, const char *iccid);
 ipad_error_t sdk_adapter_profile_delete(sdk_adapter_t *adapter, const char *iccid);

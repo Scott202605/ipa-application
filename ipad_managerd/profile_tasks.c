@@ -59,22 +59,45 @@ static ipad_error_t create_task_for_runtime(const char *method, ipad_task_t *out
     return IPAD_OK;
 }
 
-ipad_error_t profile_task_start_download(const char *smdp, const char *matching_id, ipad_task_t *out) {
+static int valid_activation_code(const char *activation_code) {
+    return activation_code &&
+           strncmp(activation_code, "LPA:", 4) == 0 &&
+           strlen(activation_code) < 256;
+}
+
+static int build_activation_code(const char *smdp, const char *matching_id, char *out, size_t out_size) {
+    int written;
+    if (!smdp || smdp[0] == '\0' || !matching_id || matching_id[0] == '\0' || !out || out_size == 0) {
+        return -1;
+    }
+    written = snprintf(out, out_size, "LPA:1$%s$%s", smdp, matching_id);
+    return written > 0 && (size_t)written < out_size ? 0 : -1;
+}
+
+ipad_error_t profile_task_start_download_activation(const char *activation_code, ipad_task_t *out) {
     char request[512];
     ipad_error_t err;
 
-    if (!smdp || smdp[0] == '\0' || !matching_id || matching_id[0] == '\0' || !out) {
+    if (!valid_activation_code(activation_code) || !out) {
         return IPAD_ERR_INVALID_PARAMS;
     }
     err = create_task_for_runtime("profile.download", out);
     if (err != IPAD_OK) return err;
     if (!g_runtime.worker_path) return IPAD_OK;
     snprintf(request, sizeof(request),
-             "{\"id\":1,\"op\":\"profile.download\",\"task_id\":\"%s\",\"smdp\":\"%s\",\"matching_id\":\"%s\"}",
+             "{\"id\":1,\"op\":\"profile.download\",\"task_id\":\"%s\",\"activation_code\":\"%s\"}",
              out->task_id,
-             smdp,
-             matching_id);
+             activation_code);
     return execute_worker_task(out, request);
+}
+
+ipad_error_t profile_task_start_download(const char *smdp, const char *matching_id, ipad_task_t *out) {
+    char activation_code[256];
+
+    if (build_activation_code(smdp, matching_id, activation_code, sizeof(activation_code)) != 0) {
+        return IPAD_ERR_INVALID_PARAMS;
+    }
+    return profile_task_start_download_activation(activation_code, out);
 }
 
 ipad_error_t profile_task_start_enable(const char *iccid, ipad_task_t *out) {

@@ -11,6 +11,7 @@ static void usage(const char *argv0) {
     printf("  %s [--socket <path>] sdk status\n", argv0);
     printf("  %s [--socket <path>] sdk deinit\n", argv0);
     printf("  %s [--socket <path>] task get <task-id>\n", argv0);
+    printf("  %s [--socket <path>] profile download --activation-code <code>\n", argv0);
     printf("  %s [--socket <path>] profile download --smdp <fqdn> --matching-id <id>\n", argv0);
     printf("  %s [--socket <path>] profile enable --iccid <iccid>\n", argv0);
     printf("  %s [--socket <path>] profile disable --iccid <iccid>\n", argv0);
@@ -77,10 +78,20 @@ int main(int argc, char **argv) {
         strcmp(argv[argi + 2], "--smdp") == 0 &&
         strcmp(argv[argi + 4], "--matching-id") == 0) {
         snprintf(request, sizeof(request),
-                 "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"%s\",\"smdp\":\"%s\",\"matching_id\":\"%s\"}",
+                 "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"%s\",\"activation_code\":\"LPA:1$%s$%s\"}",
                  IPAD_METHOD_PROFILE_DOWNLOAD,
                  argv[argi + 3],
                  argv[argi + 5]);
+        return send_request(socket_path, request);
+    }
+    if (argc - argi == 4 &&
+        strcmp(argv[argi], "profile") == 0 &&
+        strcmp(argv[argi + 1], "download") == 0 &&
+        strcmp(argv[argi + 2], "--activation-code") == 0) {
+        snprintf(request, sizeof(request),
+                 "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"%s\",\"activation_code\":\"%s\"}",
+                 IPAD_METHOD_PROFILE_DOWNLOAD,
+                 argv[argi + 3]);
         return send_request(socket_path, request);
     }
     if (argc - argi == 4 &&

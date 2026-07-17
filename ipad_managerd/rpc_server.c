@@ -85,17 +85,21 @@ int rpc_handle_request(const char *request, char *response, size_t response_size
 
     ensure_task_store();
     if (strcmp(method, IPAD_METHOD_PROFILE_DOWNLOAD) == 0) {
+        char activation_code[256];
         char smdp[128];
         char matching_id[128];
         ipad_task_t task;
         ipad_error_t err;
 
-        if (ipad_json_get_string(request, "smdp", smdp, sizeof(smdp)) != 0 ||
-            ipad_json_get_string(request, "matching_id", matching_id, sizeof(matching_id)) != 0) {
+        if (ipad_json_get_string(request, "activation_code", activation_code, sizeof(activation_code)) == 0) {
+            err = profile_task_start_download_activation(activation_code, &task);
+        } else if (ipad_json_get_string(request, "smdp", smdp, sizeof(smdp)) == 0 &&
+                   ipad_json_get_string(request, "matching_id", matching_id, sizeof(matching_id)) == 0) {
+            err = profile_task_start_download(smdp, matching_id, &task);
+        } else {
             audit_log_write("local", method, "", "invalid_params");
-            return ipad_json_write_error(response, response_size, id, IPAD_ERR_INVALID_PARAMS, "missing smdp or matching_id");
+            return ipad_json_write_error(response, response_size, id, IPAD_ERR_INVALID_PARAMS, "missing activation_code or smdp/matching_id");
         }
-        err = profile_task_start_download(smdp, matching_id, &task);
         if (err != IPAD_OK) {
             audit_log_write("local", method, "", ipad_error_to_string(err));
             return ipad_json_write_error(response, response_size, id, err, ipad_error_to_string(err));

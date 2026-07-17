@@ -49,6 +49,7 @@ int worker_protocol_handle_line(const char *request, char *response, size_t resp
     int id = 0;
     char op[96];
     char task_id[32];
+    char activation_code[256];
     char smdp[128];
     char matching_id[128];
     char iccid[64];
@@ -85,11 +86,14 @@ int worker_protocol_handle_line(const char *request, char *response, size_t resp
                    ? write_sdk_deinit_ok(response, response_size, id)
                    : write_worker_error(response, response_size, id, task_id, err);
     } else if (strcmp(op, "profile.download") == 0) {
-        if (ipad_json_get_string(request, "smdp", smdp, sizeof(smdp)) != 0 ||
-            ipad_json_get_string(request, "matching_id", matching_id, sizeof(matching_id)) != 0) {
-            err = IPAD_ERR_INVALID_PARAMS;
+        if (ipad_json_get_string(request, "activation_code", activation_code, sizeof(activation_code)) == 0) {
+            err = sdk_adapter_profile_download(adapter, activation_code);
+        } else if (ipad_json_get_string(request, "smdp", smdp, sizeof(smdp)) == 0 &&
+                   ipad_json_get_string(request, "matching_id", matching_id, sizeof(matching_id)) == 0 &&
+                   snprintf(activation_code, sizeof(activation_code), "LPA:1$%s$%s", smdp, matching_id) > 0) {
+            err = sdk_adapter_profile_download(adapter, activation_code);
         } else {
-            err = sdk_adapter_profile_download(adapter, smdp, matching_id);
+            err = IPAD_ERR_INVALID_PARAMS;
         }
     } else if (strcmp(op, "profile.enable") == 0) {
         err = ipad_json_get_string(request, "iccid", iccid, sizeof(iccid)) == 0
