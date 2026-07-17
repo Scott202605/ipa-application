@@ -1,0 +1,15 @@
+{
+  "socket_path": "/run/ipad-manager/ipad-manager.sock",
+  "worker_path": "/usr/local/bin/ipad-sdk-worker",
+  "sdk_mode": "mock",
+  "request_timeout_ms": 10000,
+  "worker_max_restarts": 3,
+  "worker_restart_window_seconds": 60,
+  "sdk_transport": "at_serial",
+  "at_device": "/dev/ttyUSB2",
+  "at_baudrate": 115200,
+  "sdk_log_level": "info",
+  "task_store_path": "/var/lib/ipad-manager/tasks.jsonl",
+  "task_retention": 256,
+  "audit_log_path": "/var/log/ipad-manager/audit.jsonl"
+}
