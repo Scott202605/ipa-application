@@ -1,5 +1,6 @@
 add_library(ipadctl_testlib STATIC
     config_commands.c
+    device_discovery.c
     diagnostics.c
 )
 target_include_directories(ipadctl_testlib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
@@ -9,6 +10,7 @@ target_compile_options(ipadctl_testlib PRIVATE -Wall -Wextra -Werror)
 add_executable(ipadctl
     ipadctl_main.c
     config_commands.c
+    device_discovery.c
     diagnostics.c
 )
 target_link_libraries(ipadctl PRIVATE ipad_common)

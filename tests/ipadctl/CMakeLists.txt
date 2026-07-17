@@ -5,3 +5,7 @@ add_test(NAME test_diagnostics COMMAND test_diagnostics)
 add_executable(test_config_commands test_config_commands.c)
 target_link_libraries(test_config_commands PRIVATE ipadctl_testlib ipad_common)
 add_test(NAME test_config_commands COMMAND test_config_commands)
+
+add_executable(test_device_discovery test_device_discovery.c)
+target_link_libraries(test_device_discovery PRIVATE ipadctl_testlib ipad_common)
+add_test(NAME test_device_discovery COMMAND test_device_discovery)

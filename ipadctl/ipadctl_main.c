@@ -1,4 +1,5 @@
 #include "config_commands.h"
+#include "device_discovery.h"
 #include "ipad_protocol.h"
 #include "ipad_socket.h"
 
@@ -9,6 +10,7 @@ static void usage(const char *argv0) {
     printf("Usage:\n");
     printf("  %s [--config <path>] config show\n", argv0);
     printf("  %s [--config <path>] config check\n", argv0);
+    printf("  %s device list [--dev-root <path>]\n", argv0);
     printf("  %s [--socket <path>] status\n", argv0);
     printf("  %s [--socket <path>] sdk init\n", argv0);
     printf("  %s [--socket <path>] sdk status\n", argv0);
@@ -61,6 +63,12 @@ int main(int argc, char **argv) {
 
     if (argc - argi >= 1 && strcmp(argv[argi], "config") == 0) {
         int rc = ipadctl_config_command(argc - argi, argv + argi, config_path);
+        if (rc != 2) {
+            return rc;
+        }
+    }
+    if (argc - argi >= 1 && strcmp(argv[argi], "device") == 0) {
+        int rc = ipadctl_device_command(argc - argi, argv + argi);
         if (rc != 2) {
             return rc;
         }
