@@ -1,49 +1,84 @@
 #include "ipad_protocol.h"
+#include "ipad_socket.h"
 
 #include <stdio.h>
 #include <string.h>
 
 static void usage(const char *argv0) {
     printf("Usage:\n");
-    printf("  %s status\n", argv0);
-    printf("  %s profile download --smdp <fqdn> --matching-id <id>\n", argv0);
-    printf("  %s profile enable --iccid <iccid>\n", argv0);
-    printf("  %s profile disable --iccid <iccid>\n", argv0);
-    printf("  %s profile delete --iccid <iccid>\n", argv0);
+    printf("  %s [--socket <path>] status\n", argv0);
+    printf("  %s [--socket <path>] profile download --smdp <fqdn> --matching-id <id>\n", argv0);
+    printf("  %s [--socket <path>] profile enable --iccid <iccid>\n", argv0);
+    printf("  %s [--socket <path>] profile disable --iccid <iccid>\n", argv0);
+    printf("  %s [--socket <path>] profile delete --iccid <iccid>\n", argv0);
+}
+
+static int send_request(const char *socket_path, const char *request) {
+    int fd;
+    char response[IPAD_MAX_JSON_MESSAGE];
+
+    fd = ipad_socket_connect(socket_path);
+    if (fd < 0) {
+        fprintf(stderr, "failed to connect to %s\n", socket_path);
+        return 1;
+    }
+    if (ipad_socket_write_line(fd, request) != 0 ||
+        ipad_socket_read_line(fd, response, sizeof(response)) != 0) {
+        fprintf(stderr, "failed to exchange request with daemon\n");
+        ipad_socket_close(fd);
+        return 1;
+    }
+    ipad_socket_close(fd);
+    fputs(response, stdout);
+    return 0;
 }
 
 int main(int argc, char **argv) {
-    if (argc == 2 && strcmp(argv[1], "status") == 0) {
-        puts("{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"" IPAD_METHOD_SYSTEM_STATUS "\"}");
-        return 0;
+    const char *socket_path = IPAD_DEFAULT_SOCKET_PATH;
+    int argi = 1;
+    char request[IPAD_MAX_JSON_MESSAGE];
+
+    if (argc >= 3 && strcmp(argv[argi], "--socket") == 0) {
+        socket_path = argv[argi + 1];
+        argi += 2;
     }
-    if (argc == 7 &&
-        strcmp(argv[1], "profile") == 0 &&
-        strcmp(argv[2], "download") == 0 &&
-        strcmp(argv[3], "--smdp") == 0 &&
-        strcmp(argv[5], "--matching-id") == 0) {
-        printf("{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"" IPAD_METHOD_PROFILE_DOWNLOAD "\",\"smdp\":\"%s\",\"matching_id\":\"%s\"}\n",
-               argv[4],
-               argv[6]);
-        return 0;
+
+    if (argc - argi == 1 && strcmp(argv[argi], "status") == 0) {
+        snprintf(request, sizeof(request),
+                 "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"%s\"}",
+                 IPAD_METHOD_SYSTEM_STATUS);
+        return send_request(socket_path, request);
     }
-    if (argc == 5 &&
-        strcmp(argv[1], "profile") == 0 &&
-        strcmp(argv[3], "--iccid") == 0) {
+    if (argc - argi == 6 &&
+        strcmp(argv[argi], "profile") == 0 &&
+        strcmp(argv[argi + 1], "download") == 0 &&
+        strcmp(argv[argi + 2], "--smdp") == 0 &&
+        strcmp(argv[argi + 4], "--matching-id") == 0) {
+        snprintf(request, sizeof(request),
+                 "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"%s\",\"smdp\":\"%s\",\"matching_id\":\"%s\"}",
+                 IPAD_METHOD_PROFILE_DOWNLOAD,
+                 argv[argi + 3],
+                 argv[argi + 5]);
+        return send_request(socket_path, request);
+    }
+    if (argc - argi == 4 &&
+        strcmp(argv[argi], "profile") == 0 &&
+        strcmp(argv[argi + 2], "--iccid") == 0) {
         const char *method = NULL;
 
-        if (strcmp(argv[2], "enable") == 0) {
+        if (strcmp(argv[argi + 1], "enable") == 0) {
             method = IPAD_METHOD_PROFILE_ENABLE;
-        } else if (strcmp(argv[2], "disable") == 0) {
+        } else if (strcmp(argv[argi + 1], "disable") == 0) {
             method = IPAD_METHOD_PROFILE_DISABLE;
-        } else if (strcmp(argv[2], "delete") == 0) {
+        } else if (strcmp(argv[argi + 1], "delete") == 0) {
             method = IPAD_METHOD_PROFILE_DELETE;
         }
         if (method) {
-            printf("{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"%s\",\"iccid\":\"%s\"}\n",
-                   method,
-                   argv[4]);
-            return 0;
+            snprintf(request, sizeof(request),
+                     "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"%s\",\"iccid\":\"%s\"}",
+                     method,
+                     argv[argi + 3]);
+            return send_request(socket_path, request);
         }
     }
 
