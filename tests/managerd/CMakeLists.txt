@@ -20,7 +20,7 @@ target_link_libraries(test_managerd_socket PRIVATE ipad_common)
 add_test(NAME test_managerd_socket
   COMMAND test_managerd_socket
     $<TARGET_FILE:ipad-managerd>
-    ${CMAKE_CURRENT_BINARY_DIR}/ipad-manager-test.sock)
+    /tmp/ipad-manager-test.sock)
 
 add_executable(test_ipadctl_socket test_ipadctl_socket.c)
 target_link_libraries(test_ipadctl_socket PRIVATE ipad_common)
@@ -28,7 +28,7 @@ add_test(NAME test_ipadctl_socket
   COMMAND test_ipadctl_socket
     $<TARGET_FILE:ipad-managerd>
     $<TARGET_FILE:ipadctl>
-    ${CMAKE_CURRENT_BINARY_DIR}/ipadctl-test.sock)
+    /tmp/ipadctl-test.sock)
 
 add_executable(test_worker_process test_worker_process.c)
 target_link_libraries(test_worker_process PRIVATE ipad_managerd_testlib ipad_common)

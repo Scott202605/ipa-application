@@ -5,3 +5,7 @@ add_test(NAME test_ipad_json COMMAND test_ipad_json)
 add_executable(test_ipad_socket test_ipad_socket.c)
 target_link_libraries(test_ipad_socket PRIVATE ipad_common)
 add_test(NAME test_ipad_socket COMMAND test_ipad_socket)
+
+add_executable(test_ipad_config test_ipad_config.c)
+target_link_libraries(test_ipad_config PRIVATE ipad_common)
+add_test(NAME test_ipad_config COMMAND test_ipad_config)

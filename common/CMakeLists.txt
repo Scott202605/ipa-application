@@ -1,4 +1,5 @@
 add_library(ipad_common STATIC
+    ipad_config.c
     ipad_json.c
     ipad_socket.c
 )
