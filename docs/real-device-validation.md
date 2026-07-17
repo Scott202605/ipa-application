@@ -1,5 +1,7 @@
 # Real Device Validation
 
+For the shorter operator-first flow, start with `docs/quick-start.md`.
+
 ## Prerequisites
 
 - Ubuntu 22.04+ target device.
@@ -44,6 +46,15 @@ Expected: the worker starts or prints a concrete SDK initialization error. If it
 
 Expected: the CLI prints a JSON-RPC response containing `"daemon":"running"`.
 
+Before using the installed system service, validate local configuration and device candidates:
+
+```bash
+ipadctl device list
+ipadctl config show
+ipadctl config check
+ipadctl doctor
+```
+
 ## Service Diagnostics
 
 When running through systemd:
@@ -63,6 +74,7 @@ Confirm:
 - The socket group matches the configured `ipad` service group.
 - The user running `ipadctl` belongs to that group.
 - The AT serial path or PC/SC reader is accessible to the service user.
+- `ipadctl doctor` reports the daemon socket as reachable after the service starts.
 
 ## End-to-End CLI Validation
 

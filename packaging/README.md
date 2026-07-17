@@ -2,6 +2,8 @@
 
 This directory contains Linux deployment artifacts for the single-device IPAd Manager service.
 
+For first-run commands, see `docs/quick-start.md`.
+
 ## Runtime paths
 
 - Socket: `/run/ipad-manager/ipad-manager.sock`
@@ -22,7 +24,17 @@ sudo usermod -aG dialout ipad
 
 ## Sample config
 
-Install the runtime config at `/etc/ipad-manager/config.json`:
+Install the runtime config at `/etc/ipad-manager/config.json`, or generate it with:
+
+```bash
+sudo ipadctl setup --mock
+ipadctl device list
+sudo ipadctl setup --real --at-device /dev/ttyUSB2
+```
+
+Template files are also available in `packaging/config/`.
+
+Real AT serial example:
 
 ```json
 {
@@ -39,3 +51,11 @@ Install the runtime config at `/etc/ipad-manager/config.json`:
 ```
 
 For CI or development without hardware, set `"sdk_mode": "mock"`.
+
+Validate the final configuration with:
+
+```bash
+ipadctl config show
+ipadctl config check
+ipadctl doctor
+```

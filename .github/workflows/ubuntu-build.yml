@@ -48,10 +48,16 @@ jobs:
           test -f packaging/systemd/ipad-managerd.service
           test -f packaging/tmpfiles/ipad-manager.conf
           test -f packaging/README.md
+          test -f packaging/config/mock.config.json
+          test -f packaging/config/at-serial.config.json
+          test -f docs/quick-start.md
           grep -q 'RuntimeDirectory=ipad-manager' packaging/systemd/ipad-managerd.service
           grep -q 'StateDirectory=ipad-manager' packaging/systemd/ipad-managerd.service
           grep -q 'LogsDirectory=ipad-manager' packaging/systemd/ipad-managerd.service
           grep -q 'SupplementaryGroups=dialout' packaging/systemd/ipad-managerd.service
+          grep -q 'ipadctl doctor' docs/quick-start.md
+          grep -q 'ipadctl config check' docs/quick-start.md
+          grep -q 'ipadctl device list' docs/quick-start.md
 
       - name: Configure SDK
         run: cmake -S ipa_sdk_pc -B ipa_sdk_pc/build -DCMAKE_BUILD_TYPE=Release
