@@ -38,5 +38,6 @@ int main(int argc, char **argv) {
         fflush(stdout);
     }
 
+    sdk_adapter_deinit(&adapter);
     return 0;
 }
