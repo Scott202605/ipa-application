@@ -1,3 +1,4 @@
+#include "config_commands.h"
 #include "ipad_protocol.h"
 #include "ipad_socket.h"
 
@@ -6,6 +7,8 @@
 
 static void usage(const char *argv0) {
     printf("Usage:\n");
+    printf("  %s [--config <path>] config show\n", argv0);
+    printf("  %s [--config <path>] config check\n", argv0);
     printf("  %s [--socket <path>] status\n", argv0);
     printf("  %s [--socket <path>] sdk init\n", argv0);
     printf("  %s [--socket <path>] sdk status\n", argv0);
@@ -40,12 +43,27 @@ static int send_request(const char *socket_path, const char *request) {
 
 int main(int argc, char **argv) {
     const char *socket_path = IPAD_DEFAULT_SOCKET_PATH;
+    const char *config_path = NULL;
     int argi = 1;
     char request[IPAD_MAX_JSON_MESSAGE];
 
-    if (argc >= 3 && strcmp(argv[argi], "--socket") == 0) {
-        socket_path = argv[argi + 1];
-        argi += 2;
+    while (argc - argi >= 2) {
+        if (strcmp(argv[argi], "--socket") == 0) {
+            socket_path = argv[argi + 1];
+            argi += 2;
+        } else if (strcmp(argv[argi], "--config") == 0) {
+            config_path = argv[argi + 1];
+            argi += 2;
+        } else {
+            break;
+        }
+    }
+
+    if (argc - argi >= 1 && strcmp(argv[argi], "config") == 0) {
+        int rc = ipadctl_config_command(argc - argi, argv + argi, config_path);
+        if (rc != 2) {
+            return rc;
+        }
     }
 
     if (argc - argi == 1 && strcmp(argv[argi], "status") == 0) {
