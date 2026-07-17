@@ -13,3 +13,7 @@ add_test(NAME test_device_discovery COMMAND test_device_discovery)
 add_executable(test_setup_commands test_setup_commands.c)
 target_link_libraries(test_setup_commands PRIVATE ipadctl_testlib ipad_common)
 add_test(NAME test_setup_commands COMMAND test_setup_commands)
+
+add_executable(test_doctor test_doctor.c)
+target_link_libraries(test_doctor PRIVATE ipadctl_testlib ipad_common)
+add_test(NAME test_doctor COMMAND test_doctor)
