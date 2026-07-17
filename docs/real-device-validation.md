@@ -49,6 +49,9 @@ Expected: the CLI prints a JSON-RPC response containing `"daemon":"running"`.
 When running through systemd:
 
 ```bash
+sudo systemctl daemon-reload
+sudo systemctl restart ipad-managerd
+sudo systemctl status ipad-managerd --no-pager
 journalctl -u ipad-managerd --no-pager
 ls -l /run/ipad-manager
 groups
@@ -61,10 +64,30 @@ Confirm:
 - The user running `ipadctl` belongs to that group.
 - The AT serial path or PC/SC reader is accessible to the service user.
 
+## End-to-End CLI Validation
+
+Use the installed `ipadctl` against the default daemon socket:
+
+```bash
+ipadctl status
+ipadctl sdk init
+ipadctl sdk status
+ipadctl profile download --activation-code 'LPA:1$smdp.example.com$MATCHINGID'
+ipadctl task get task-1
+```
+
+Collect task and service artifacts:
+
+```bash
+journalctl -u ipad-managerd --no-pager
+sudo tail -n 50 /var/lib/ipad-manager/tasks.jsonl
+sudo tail -n 50 /var/log/ipad-manager/audit.jsonl
+```
+
 ## Profile Validation Checklist
 
-- `sdk.init` reports initialized once the RPC method is wired.
-- `sdk.status` reports mock or real mode.
+- `sdk.init` returns a JSON-RPC result.
+- `sdk.status` reports initialized state and mock or real mode.
 - `profile.download` returns a task id and stable failure when real activation-code mapping is incomplete.
 - `profile.enable`, `profile.disable`, and `profile.delete` return explicit SDK facade errors until public SDK wrappers are completed.
 - Worker crash or timeout does not terminate `ipad-managerd`.

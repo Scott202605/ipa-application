@@ -7,6 +7,7 @@ Wants=network-online.target
 Type=simple
 User=ipad
 Group=ipad
+SupplementaryGroups=dialout
 RuntimeDirectory=ipad-manager
 StateDirectory=ipad-manager
 LogsDirectory=ipad-manager
