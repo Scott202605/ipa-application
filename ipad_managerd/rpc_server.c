@@ -84,6 +84,26 @@ int rpc_handle_request(const char *request, char *response, size_t response_size
     }
 
     ensure_task_store();
+    if (strcmp(method, IPAD_METHOD_TASK_GET) == 0) {
+        char task_id[IPAD_TASK_ID_SIZE];
+        ipad_task_t task;
+        char task_json[512];
+
+        if (ipad_json_get_string(request, "task_id", task_id, sizeof(task_id)) != 0) {
+            audit_log_write("local", method, "", "invalid_params");
+            return ipad_json_write_error(response, response_size, id, IPAD_ERR_INVALID_PARAMS, "missing task_id");
+        }
+        if (task_store_get(task_id, &task) != 0) {
+            audit_log_write("local", method, task_id, "task_not_found");
+            return ipad_json_write_error(response, response_size, id, IPAD_ERR_TASK_NOT_FOUND, "task not found");
+        }
+        if (task_store_write_json(&task, task_json, sizeof(task_json)) != 0) {
+            return ipad_json_write_error(response, response_size, id, IPAD_ERR_INTERNAL, "task serialization failed");
+        }
+        audit_log_write("local", method, task_id, "ok");
+        return ipad_json_write_result(response, response_size, id, task_json);
+    }
+
     if (strcmp(method, IPAD_METHOD_PROFILE_DOWNLOAD) == 0) {
         char activation_code[256];
         char smdp[128];

@@ -72,6 +72,13 @@ int main(int argc, char **argv) {
             return send_request(socket_path, request);
         }
     }
+    if (argc - argi == 3 && strcmp(argv[argi], "task") == 0 && strcmp(argv[argi + 1], "get") == 0) {
+        snprintf(request, sizeof(request),
+                 "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"%s\",\"task_id\":\"%s\"}",
+                 IPAD_METHOD_TASK_GET,
+                 argv[argi + 2]);
+        return send_request(socket_path, request);
+    }
     if (argc - argi == 6 &&
         strcmp(argv[argi], "profile") == 0 &&
         strcmp(argv[argi + 1], "download") == 0 &&

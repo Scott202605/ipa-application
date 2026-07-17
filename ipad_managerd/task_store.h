@@ -1,6 +1,7 @@
 #ifndef TASK_STORE_H
 #define TASK_STORE_H
 
+#include <stddef.h>
 #include <time.h>
 
 #define IPAD_TASK_ID_SIZE 32
@@ -30,9 +31,12 @@ typedef struct {
 } ipad_task_t;
 
 void task_store_init(void);
+int task_store_set_path(const char *path, int retention);
+int task_store_load(void);
 int task_store_create(const char *method, ipad_task_t *out);
 int task_store_get(const char *task_id, ipad_task_t *out);
 int task_store_update_state(const char *task_id, task_state_t state, const char *stage, const char *error_name);
+int task_store_write_json(const ipad_task_t *task, char *out, size_t out_size);
 const char *task_state_to_string(task_state_t state);
 
 #endif

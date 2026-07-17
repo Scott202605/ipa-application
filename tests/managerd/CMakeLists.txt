@@ -10,6 +10,10 @@ add_executable(test_task_store test_task_store.c)
 target_link_libraries(test_task_store PRIVATE ipad_managerd_testlib ipad_common)
 add_test(NAME test_task_store COMMAND test_task_store)
 
+add_executable(test_task_store_persistence test_task_store_persistence.c)
+target_link_libraries(test_task_store_persistence PRIVATE ipad_managerd_testlib ipad_common)
+add_test(NAME test_task_store_persistence COMMAND test_task_store_persistence)
+
 add_executable(test_profile_tasks test_profile_tasks.c)
 target_link_libraries(test_profile_tasks PRIVATE ipad_managerd_testlib ipad_common)
 add_test(NAME test_profile_tasks COMMAND test_profile_tasks)
