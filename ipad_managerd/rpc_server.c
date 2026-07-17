@@ -68,6 +68,21 @@ int rpc_handle_request(const char *request, char *response, size_t response_size
         return ipad_json_write_result(response, response_size, id, "{\"worker\":\"ready\"}");
     }
 
+    if (strcmp(method, IPAD_METHOD_SDK_INIT) == 0) {
+        audit_log_write("local", method, "", "ok");
+        return ipad_json_write_result(response, response_size, id, "{\"sdk\":\"initialized\",\"mode\":\"mock\"}");
+    }
+
+    if (strcmp(method, IPAD_METHOD_SDK_STATUS) == 0) {
+        audit_log_write("local", method, "", "ok");
+        return ipad_json_write_result(response, response_size, id, "{\"mode\":\"mock\",\"initialized\":true}");
+    }
+
+    if (strcmp(method, IPAD_METHOD_SDK_DEINIT) == 0) {
+        audit_log_write("local", method, "", "ok");
+        return ipad_json_write_result(response, response_size, id, "{\"sdk\":\"deinitialized\"}");
+    }
+
     ensure_task_store();
     if (strcmp(method, IPAD_METHOD_PROFILE_DOWNLOAD) == 0) {
         char smdp[128];

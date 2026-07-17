@@ -9,6 +9,10 @@
 
 #define IPAD_METHOD_SYSTEM_STATUS "system.status"
 #define IPAD_METHOD_WORKER_START_MOCK "worker.start_mock"
+#define IPAD_METHOD_SDK_INIT "sdk.init"
+#define IPAD_METHOD_SDK_STATUS "sdk.status"
+#define IPAD_METHOD_SDK_DEINIT "sdk.deinit"
+#define IPAD_METHOD_TASK_GET "task.get"
 #define IPAD_METHOD_PROFILE_DOWNLOAD "profile.download"
 #define IPAD_METHOD_PROFILE_ENABLE "profile.enable"
 #define IPAD_METHOD_PROFILE_DISABLE "profile.disable"

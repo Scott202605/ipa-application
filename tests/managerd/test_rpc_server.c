@@ -20,6 +20,15 @@ int main(void) {
     if (rpc_handle_request("{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"worker.start_mock\"}", response, sizeof(response)) != 0) return 1;
     if (require_contains(response, "\"worker\":\"ready\"")) return 1;
 
+    if (rpc_handle_request("{\"jsonrpc\":\"2.0\",\"id\":10,\"method\":\"sdk.status\"}", response, sizeof(response)) != 0) return 1;
+    if (require_contains(response, "\"initialized\"")) return 1;
+
+    if (rpc_handle_request("{\"jsonrpc\":\"2.0\",\"id\":11,\"method\":\"sdk.init\"}", response, sizeof(response)) != 0) return 1;
+    if (require_contains(response, "\"sdk\":\"initialized\"")) return 1;
+
+    if (rpc_handle_request("{\"jsonrpc\":\"2.0\",\"id\":12,\"method\":\"sdk.deinit\"}", response, sizeof(response)) != 0) return 1;
+    if (require_contains(response, "\"sdk\":\"deinitialized\"")) return 1;
+
     if (rpc_handle_request("{\"jsonrpc\":\"2.0\",\"id\":3,\"method\":\"profile.download\",\"smdp\":\"smdp.example.com\",\"matching_id\":\"ABCD\"}", response, sizeof(response)) != 0) return 1;
     if (require_contains(response, "\"state\":\"completed\"")) return 1;
 

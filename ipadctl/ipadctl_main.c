@@ -7,6 +7,10 @@
 static void usage(const char *argv0) {
     printf("Usage:\n");
     printf("  %s [--socket <path>] status\n", argv0);
+    printf("  %s [--socket <path>] sdk init\n", argv0);
+    printf("  %s [--socket <path>] sdk status\n", argv0);
+    printf("  %s [--socket <path>] sdk deinit\n", argv0);
+    printf("  %s [--socket <path>] task get <task-id>\n", argv0);
     printf("  %s [--socket <path>] profile download --smdp <fqdn> --matching-id <id>\n", argv0);
     printf("  %s [--socket <path>] profile enable --iccid <iccid>\n", argv0);
     printf("  %s [--socket <path>] profile disable --iccid <iccid>\n", argv0);
@@ -48,6 +52,24 @@ int main(int argc, char **argv) {
                  "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"%s\"}",
                  IPAD_METHOD_SYSTEM_STATUS);
         return send_request(socket_path, request);
+    }
+    if (argc - argi == 2 && strcmp(argv[argi], "sdk") == 0) {
+        const char *sub = argv[argi + 1];
+        const char *method = NULL;
+
+        if (strcmp(sub, "init") == 0) {
+            method = IPAD_METHOD_SDK_INIT;
+        } else if (strcmp(sub, "status") == 0) {
+            method = IPAD_METHOD_SDK_STATUS;
+        } else if (strcmp(sub, "deinit") == 0) {
+            method = IPAD_METHOD_SDK_DEINIT;
+        }
+        if (method) {
+            snprintf(request, sizeof(request),
+                     "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"%s\"}",
+                     method);
+            return send_request(socket_path, request);
+        }
     }
     if (argc - argi == 6 &&
         strcmp(argv[argi], "profile") == 0 &&
