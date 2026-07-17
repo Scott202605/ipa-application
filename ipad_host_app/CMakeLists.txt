@@ -62,6 +62,7 @@ set(SOURCES
     src/utils/logger.c
     src/utils/json_helper.c
     src/utils/config_manager.c
+    src/utils/manager_rpc_client.c
     src/debug/mock_response.c
 )
 

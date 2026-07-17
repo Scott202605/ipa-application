@@ -33,6 +33,21 @@ jobs:
             libserialport-dev \
             libpaho-mqtt-dev
 
+      - name: Configure manager components
+        run: cmake -S . -B build-manager -DIPAD_BUILD_TESTS=ON
+
+      - name: Build manager components
+        run: cmake --build build-manager --parallel
+
+      - name: Run manager tests
+        run: ctest --test-dir build-manager --output-on-failure
+
+      - name: Check packaging files
+        run: |
+          test -f packaging/systemd/ipad-managerd.service
+          test -f packaging/tmpfiles/ipad-manager.conf
+          test -f packaging/README.md
+
       - name: Configure SDK
         run: cmake -S ipa_sdk_pc -B ipa_sdk_pc/build -DCMAKE_BUILD_TYPE=Release
 

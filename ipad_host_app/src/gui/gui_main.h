@@ -29,6 +29,7 @@ typedef struct {
     
     // 当前选中的 API
     const api_descriptor_t *current_api;
+    const char *manager_socket_path;
     
     // 模拟响应模式
     GtkWidget *mock_response_check;

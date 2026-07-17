@@ -1,0 +1,18 @@
+[Unit]
+Description=IPAd Manager daemon
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ipad
+Group=ipad
+RuntimeDirectory=ipad-manager
+StateDirectory=ipad-manager
+LogsDirectory=ipad-manager
+ExecStart=/usr/local/bin/ipad-managerd --config /etc/ipad-manager/config.json
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

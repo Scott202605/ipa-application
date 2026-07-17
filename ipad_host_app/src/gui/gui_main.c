@@ -28,6 +28,7 @@ static ErrCode invoke_selected_api(main_window_t *window);
 main_window_t* gui_main_create_window(void) {
     main_window_t *window = g_new0(main_window_t, 1);
     if (!window) return NULL;
+    window->manager_socket_path = "/run/ipad-manager/ipad-manager.sock";
     
     // 创建主窗口
     window->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);

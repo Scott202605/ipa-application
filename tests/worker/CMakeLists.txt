@@ -1,0 +1,3 @@
+add_executable(test_sdk_adapter_mock test_sdk_adapter_mock.c)
+target_link_libraries(test_sdk_adapter_mock PRIVATE ipad_worker_testlib ipad_common)
+add_test(NAME test_sdk_adapter_mock COMMAND test_sdk_adapter_mock)
