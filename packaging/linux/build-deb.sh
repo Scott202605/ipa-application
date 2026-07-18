@@ -79,7 +79,10 @@ for path in sorted(stage.rglob("*")):
     if not path.is_file() or "DEBIAN" in path.parts:
         continue
     installed = "/" + path.relative_to(stage).as_posix()
-    if installed == "/usr/share/ipad-manager/install-manifest.json":
+    if installed in {
+        "/etc/ipad-manager/config.json",
+        "/usr/share/ipad-manager/install-manifest.json",
+    }:
         continue
     tracked.append({"path": installed, "sha256": hashlib.sha256(path.read_bytes()).hexdigest()})
 manifest = {
