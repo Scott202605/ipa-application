@@ -43,8 +43,16 @@ jobs:
       - name: Run manager tests
         run: ctest --test-dir build-manager --output-on-failure
 
+      - name: Create release package
+        run: |
+          sh -n packaging/make-release-tarball.sh
+          sh packaging/make-release-tarball.sh build-manager /tmp/ipad-release
+          test -f /tmp/ipad-release/ipad-manager-release/MANIFEST.txt
+          test -f /tmp/ipad-release/ipad-manager-release.tar.gz
+
       - name: Check packaging files
         run: |
+          test -f packaging/make-release-tarball.sh
           test -f packaging/systemd/ipad-managerd.service
           test -f packaging/tmpfiles/ipad-manager.conf
           test -f packaging/README.md
@@ -54,6 +62,10 @@ jobs:
           test -f packaging/sysvinit/ipad-managerd
           test -f packaging/manual/README.md
           test -f docs/quick-start.md
+          test -f docs/install-delivery.md
+          test -f docs/real-device-acceptance.md
+          test -f docs/templates/real-device-evidence.md
+          test -f docs/troubleshooting-guide.md
           grep -q 'RuntimeDirectory=ipad-manager' packaging/systemd/ipad-managerd.service
           grep -q 'StateDirectory=ipad-manager' packaging/systemd/ipad-managerd.service
           grep -q 'LogsDirectory=ipad-manager' packaging/systemd/ipad-managerd.service
@@ -63,6 +75,9 @@ jobs:
           grep -q 'ipadctl device list' docs/quick-start.md
           grep -q 'ipadctl platform check' docs/quick-start.md
           grep -q 'ipadctl bootstrap check' docs/quick-start.md
+          grep -q 'ipadctl doctor' docs/troubleshooting-guide.md
+          grep -q 'profile download' docs/real-device-acceptance.md
+          grep -q 'make-release-tarball.sh' docs/install-delivery.md
 
       - name: Configure SDK
         run: cmake -S ipa_sdk_pc -B ipa_sdk_pc/build -DCMAKE_BUILD_TYPE=Release

@@ -2,6 +2,8 @@
 
 For the shorter operator-first flow, start with `docs/quick-start.md`.
 
+For field acceptance sign-off, use `docs/real-device-acceptance.md` and record output in `docs/templates/real-device-evidence.md`.
+
 ## Prerequisites
 
 - Ubuntu 22.04+ target device.

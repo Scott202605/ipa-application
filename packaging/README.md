@@ -6,6 +6,10 @@ For first-run commands, see `docs/quick-start.md`.
 
 Run `ipadctl platform check` before choosing a service profile on non-Ubuntu devices.
 
+For release tarball creation and manual install flow, see `docs/install-delivery.md`.
+
+For field troubleshooting, see `docs/troubleshooting-guide.md`.
+
 ## Runtime paths
 
 - Socket: `/run/ipad-manager/ipad-manager.sock`

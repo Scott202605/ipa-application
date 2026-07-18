@@ -2,6 +2,8 @@
 
 This guide is for a single Linux device that uses IPAd Manager with the submitted IPAd SDK. Start with mock mode when you want to verify the service path without hardware, then switch to real AT serial mode on the target device.
 
+For release handoff, see `docs/install-delivery.md`. For field sign-off, see `docs/real-device-acceptance.md`.
+
 ## Mock Mode
 
 ```bash
@@ -74,3 +76,5 @@ Common next actions:
 - Missing worker: install `ipad-sdk-worker` or update `worker_path`.
 - Serial permission failure: add the service user to `dialout` or install matching udev rules.
 - Missing AT device: run `ipadctl device list` after the module is connected.
+
+For a symptom-by-symptom matrix, see `docs/troubleshooting-guide.md`.
