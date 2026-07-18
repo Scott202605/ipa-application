@@ -1,0 +1,8 @@
+#!/bin/sh
+set -eu
+
+if [ -z "${DISPLAY:-}" ] && [ -z "${WAYLAND_DISPLAY:-}" ]; then
+    echo "IPAd Manager requires a graphical session. Enable WSLg or start it from an Ubuntu desktop." >&2
+    exit 20
+fi
+exec /usr/bin/ipad-manager --config /etc/ipad-manager/config.json "$@"

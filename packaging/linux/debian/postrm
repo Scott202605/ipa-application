@@ -1,0 +1,10 @@
+#!/bin/sh
+set -eu
+
+if command -v update-desktop-database >/dev/null 2>&1; then
+    update-desktop-database /usr/share/applications >/dev/null 2>&1 || true
+fi
+if [ "${1:-}" = purge ]; then
+    rm -rf /var/log/ipad-manager
+    rmdir /etc/ipad-manager 2>/dev/null || true
+fi

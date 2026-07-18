@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=IPAd Manager
+Comment=Manage and diagnose IPAd SDK operations
+Exec=/usr/bin/ipad-manager-launch
+Terminal=false
+Categories=Utility;System;
+StartupNotify=true
