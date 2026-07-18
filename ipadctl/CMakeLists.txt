@@ -1,4 +1,5 @@
 add_library(ipadctl_testlib STATIC
+    bootstrap_commands.c
     config_commands.c
     device_discovery.c
     diagnostics.c
@@ -11,6 +12,7 @@ target_compile_options(ipadctl_testlib PRIVATE -Wall -Wextra -Werror)
 
 add_executable(ipadctl
     ipadctl_main.c
+    bootstrap_commands.c
     config_commands.c
     device_discovery.c
     diagnostics.c

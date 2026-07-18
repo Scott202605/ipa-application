@@ -25,3 +25,7 @@ add_test(NAME test_platform_check COMMAND test_platform_check)
 add_executable(test_platform_command test_platform_command.c)
 target_link_libraries(test_platform_command PRIVATE ipadctl_testlib ipad_common)
 add_test(NAME test_platform_command COMMAND test_platform_command)
+
+add_executable(test_bootstrap_commands test_bootstrap_commands.c)
+target_link_libraries(test_bootstrap_commands PRIVATE ipadctl_testlib ipad_common)
+add_test(NAME test_bootstrap_commands COMMAND test_bootstrap_commands)

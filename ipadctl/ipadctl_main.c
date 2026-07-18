@@ -1,3 +1,4 @@
+#include "bootstrap_commands.h"
 #include "config_commands.h"
 #include "device_discovery.h"
 #include "diagnostics.h"
@@ -16,6 +17,8 @@ static void usage(const char *argv0) {
     printf("  %s device list [--dev-root <path>]\n", argv0);
     printf("  %s [--config <path>] setup --mock\n", argv0);
     printf("  %s [--config <path>] setup --real --at-device <path>\n", argv0);
+    printf("  %s bootstrap check --mock\n", argv0);
+    printf("  %s bootstrap check --real --at-device <path>\n", argv0);
     printf("  %s platform check\n", argv0);
     printf("  %s [--config <path>] [--socket <path>] doctor\n", argv0);
     printf("  %s [--socket <path>] status\n", argv0);
@@ -82,6 +85,12 @@ int main(int argc, char **argv) {
     }
     if (argc - argi >= 1 && strcmp(argv[argi], "setup") == 0) {
         int rc = ipadctl_setup_command(argc - argi, argv + argi, config_path);
+        if (rc != 2) {
+            return rc;
+        }
+    }
+    if (argc - argi >= 1 && strcmp(argv[argi], "bootstrap") == 0) {
+        int rc = ipadctl_bootstrap_command(argc - argi, argv + argi);
         if (rc != 2) {
             return rc;
         }
