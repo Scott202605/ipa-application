@@ -319,7 +319,8 @@ Expected: only `README.md` is included in this commit; user-owned unrelated file
 - [ ] **Step 1: Run the complete documentation gate from a clean index**
 
 ```powershell
-python -m unittest packaging.tests.test_readme_current packaging.tests.test_ci_workflow -v
+python packaging/tests/test_readme_current.py -v
+python packaging/tests/test_ci_workflow.py -v
 git diff --check HEAD~2..HEAD
 git status --short
 ```
