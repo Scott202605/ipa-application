@@ -1,3 +1,9 @@
+# Runtime tests use assert as their minimal test harness. Keep assertions active
+# even when the SDK itself is built as RelWithDebInfo or Release.
+if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+  add_compile_options(-UNDEBUG)
+endif()
+
 add_executable(ipa_abi_layout_probe abi/abi_layout_probe.c)
 target_compile_features(ipa_abi_layout_probe PRIVATE c_std_11)
 target_include_directories(ipa_abi_layout_probe PRIVATE ${PROJECT_SOURCE_DIR}/include)
@@ -64,3 +70,12 @@ target_include_directories(ipa_runtime_lifecycle_test PRIVATE
   ${PROJECT_SOURCE_DIR}/ipa-src/hw/linux/runtime)
 target_link_libraries(ipa_runtime_lifecycle_test PRIVATE pthread)
 add_test(NAME ipa_runtime_lifecycle COMMAND ipa_runtime_lifecycle_test)
+
+add_executable(ipa_euicc_executor_test
+  runtime/test_euicc_executor.c
+  ${PROJECT_SOURCE_DIR}/ipa-src/hw/linux/runtime/ipa_euicc_executor.c)
+target_compile_features(ipa_euicc_executor_test PRIVATE c_std_11)
+target_include_directories(ipa_euicc_executor_test PRIVATE
+  ${PROJECT_SOURCE_DIR}/ipa-src/hw/linux/runtime)
+target_link_libraries(ipa_euicc_executor_test PRIVATE pthread)
+add_test(NAME ipa_euicc_executor COMMAND ipa_euicc_executor_test)

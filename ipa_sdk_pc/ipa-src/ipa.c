@@ -16,6 +16,7 @@
 #include "es9.h"
 #include "esipa_tlv_extractor.h"
 #include "ipa_core.h"
+#include "ipa_euicc_executor.h"
 #include "ipa_display.h"
 #include "log.h"
 #include "memory_manager.h"
@@ -251,6 +252,7 @@ static ipa_t g_ipa = {
         .field_is_present = {.ipa_supported_protocols = true}}};
 static profile_info_t g_ipa_enabled_profile_info = {0};
 static bool g_ipa_profile_is_enabled = false;
+static ipa_euicc_executor_t *g_euicc_executor = NULL;
 
 ErrCode ipa__init(es9_t *const es9, es10_t *const es10, es11_t *const es11) {
   ErrCode rc;
@@ -397,8 +399,17 @@ ipa__init_deinit_es10:
   /** TODO: LPA-190 Load the eIM configuration data and use it to connect to the
    * different eIMs */
 
+  if (!g_euicc_executor &&
+      ipa_euicc_executor_create(&g_euicc_executor) != 0) {
+    LOGE("[ipa__init] Error creating the eUICC executor");
+    return eFatal;
+  }
+  ipa_euicc_executor_reset(g_euicc_executor);
+
   if (!(g_ipa.ipa_semaphore = make_semaphore())) {
     LOGE("[ipa__init] Error generating the IPA state semaphore");
+    ipa_euicc_executor_destroy(g_euicc_executor);
+    g_euicc_executor = NULL;
     return eFatal;
   }
 
@@ -406,6 +417,8 @@ ipa__init_deinit_es10:
     LOGE("[ipa__init] Error generating the IPA exit semaphore");
     semaphore_destroy(g_ipa.ipa_semaphore);
     g_ipa.ipa_semaphore = NULL;
+    ipa_euicc_executor_destroy(g_euicc_executor);
+    g_euicc_executor = NULL;
     return eFatal;
   }
 
@@ -419,7 +432,10 @@ ipa__init_deinit_es10:
 }
 
 void ipa__deinit() {
+  ipa_euicc_executor_request_stop(g_euicc_executor);
   stop_eim_service();
+  ipa_euicc_executor_destroy(g_euicc_executor);
+  g_euicc_executor = NULL;
   semaphore_destroy(g_ipa.ipa_semaphore);
   g_ipa.ipa_semaphore = NULL;
   semaphore_destroy(g_ipa.exit_sem);
@@ -601,6 +617,7 @@ void ipa__set_ipa_exit() {
   LOGI("IPA has received a signal to terminate the execution. All running "
        "threads that are using the IPA should terminate. This process may take "
        "a few minutes, do not turn off your device.");
+  ipa_euicc_executor_request_stop(g_euicc_executor);
   semaphore_give(g_ipa.exit_sem);
 }
 
@@ -613,9 +630,18 @@ bool ipa__get_ipa_exit() {
   }
 }
 
-int ipa__take() { return semaphore_take(g_ipa.ipa_semaphore); }
+int ipa__take() {
+  int result;
+  if (ipa_euicc_executor_begin(g_euicc_executor) != 0) return -1;
+  result = semaphore_take(g_ipa.ipa_semaphore);
+  if (result != 0) ipa_euicc_executor_end(g_euicc_executor);
+  return result;
+}
 
-void ipa__give() { semaphore_give(g_ipa.ipa_semaphore); }
+void ipa__give() {
+  semaphore_give(g_ipa.ipa_semaphore);
+  ipa_euicc_executor_end(g_euicc_executor);
+}
 
 bool ipa__is_available() {
   if (0 == ipa__take()) {
@@ -2258,6 +2284,7 @@ ipa__execute_profile_rollback(uint8_t **euicc_package_result,
   ErrCode rc = eFatal;
   uint8_t *response_tlv = NULL;
   uint32_t response_tlv_size = 0;
+  size_t allocation_size = 0;
   profile_rollback_request_t request = {.refresh_flag = REFRESH_FLAG};
   profile_rollback_response_t response = {0};
 
@@ -2293,7 +2320,14 @@ ipa__execute_profile_rollback(uint8_t **euicc_package_result,
       M_free(response_tlv);
       return eFatal;
     }
-    *euicc_package_result = M_malloc(response.euicc_package_result_size);
+    if (!ipa_checked_size_multiply(response.euicc_package_result_size,
+                                   sizeof(*response.euicc_package_result),
+                                   &allocation_size)) {
+      LOGE("[ipa__execute_profile_rollback] eUICCPackageResult size overflow");
+      M_free(response_tlv);
+      return eFatal;
+    }
+    *euicc_package_result = M_malloc(allocation_size);
     if (!(*euicc_package_result)) {
       LOGE("[ipa__execute_profile_rollback] Error allocating data to store the eUICCPackageResult");
       M_free(response_tlv);
