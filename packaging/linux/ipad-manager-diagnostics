@@ -1,0 +1,78 @@
+#!/usr/bin/env python3
+"""Export redacted IPAd Manager diagnostics."""
+
+import argparse
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+import tarfile
+import tempfile
+
+
+ROOT = Path(os.environ.get("IPAD_ROOT", "/"))
+SCRIPT_DIR = Path(__file__).resolve().parent
+SECRET_KEYS = re.compile(r"password|secret|token|activation_code|confirmation_code|private_key|client_key", re.IGNORECASE)
+
+
+def rooted(path: str) -> Path:
+    return ROOT / path.lstrip("/")
+
+
+def redact_value(value):
+    if isinstance(value, dict):
+        return {key: "<redacted>" if SECRET_KEYS.search(str(key)) else redact_value(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [redact_value(item) for item in value]
+    return value
+
+
+def redact_text(text: str) -> str:
+    try:
+        parsed = json.loads(text)
+        return json.dumps(redact_value(parsed), ensure_ascii=False, indent=2) + "\n"
+    except json.JSONDecodeError:
+        pattern = re.compile(r"(?i)(password|secret|token|activation_code|confirmation_code|private_key|client_key)(\s*[:=]\s*)([^\s,;]+)")
+        return pattern.sub(lambda match: match.group(1) + match.group(2) + "<redacted>", text)
+
+
+def copy_redacted(source: Path, destination: Path) -> None:
+    if source.is_file():
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_text(redact_text(source.read_text(encoding="utf-8", errors="replace")), encoding="utf-8")
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Export redacted IPAd Manager diagnostics")
+    parser.add_argument("output", type=Path)
+    args = parser.parse_args()
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+
+    with tempfile.TemporaryDirectory(prefix="ipad-manager-diagnostics-") as temp:
+        bundle = Path(temp) / "ipad-manager-diagnostics"
+        bundle.mkdir()
+        copy_redacted(rooted("/etc/ipad-manager/config.json"), bundle / "config.json")
+        for source in sorted(rooted("/var/log/ipad-manager").glob("*")) if rooted("/var/log/ipad-manager").is_dir() else []:
+            copy_redacted(source, bundle / "logs" / source.name)
+        for name in ("BUILD_METADATA.txt", "DEPENDENCIES.lock.txt", "install-manifest.json"):
+            copy_redacted(rooted(f"/usr/share/ipad-manager/{name}"), bundle / name)
+
+        health = subprocess.run(
+            [str(SCRIPT_DIR / "ipad-manager-health"), "--json"],
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            env={**os.environ, "IPAD_ROOT": str(ROOT)},
+            check=False,
+        )
+        (bundle / "health.json").write_text(redact_text(health.stdout), encoding="utf-8")
+        with tarfile.open(args.output, "w:gz") as archive:
+            archive.add(bundle, arcname=bundle.name)
+    print(args.output)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

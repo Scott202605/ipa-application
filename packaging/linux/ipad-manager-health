@@ -1,0 +1,135 @@
+#!/usr/bin/env python3
+"""Validate an installed IPAd Manager payload without requiring hardware."""
+
+import argparse
+import hashlib
+import json
+import os
+from pathlib import Path
+import platform
+import subprocess
+import sys
+
+
+ROOT = Path(os.environ.get("IPAD_ROOT", "/"))
+REQUIRED = (
+    "/etc/ipad-manager/config.json",
+    "/usr/bin/ipad-manager",
+    "/usr/lib/ipad-manager/libipa.so",
+    "/usr/share/ipad-manager/BUILD_METADATA.txt",
+    "/usr/share/ipad-manager/DEPENDENCIES.lock.txt",
+    "/usr/share/ipad-manager/install-manifest.json",
+)
+
+
+def rooted(path: str) -> Path:
+    return ROOT / path.lstrip("/")
+
+
+def result(check_id: str, status: str, message: str, remediation: str = "") -> dict:
+    return {
+        "id": check_id,
+        "status": status,
+        "message": message,
+        "remediation": remediation,
+    }
+
+
+def run(*args: str) -> subprocess.CompletedProcess:
+    return subprocess.run(args, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)
+
+
+def check_files() -> dict:
+    missing = [path for path in REQUIRED if not rooted(path).is_file()]
+    if missing:
+        return result("files", "fail", "Missing required files: " + ", ".join(missing), "Reinstall ipad-manager.")
+    return result("files", "pass", "All required product files are present.")
+
+
+def check_manifest() -> dict:
+    path = rooted("/usr/share/ipad-manager/install-manifest.json")
+    if not path.is_file():
+        return result("manifest", "fail", "Install manifest is missing.", "Reinstall ipad-manager.")
+    try:
+        manifest = json.loads(path.read_text(encoding="utf-8"))
+        mismatches = []
+        for item in manifest.get("files", []):
+            target = rooted(item["path"])
+            digest = hashlib.sha256(target.read_bytes()).hexdigest() if target.is_file() else "missing"
+            if digest != item["sha256"]:
+                mismatches.append(item["path"])
+        if not manifest.get("files") or mismatches:
+            raise ValueError("invalid or mismatched entries: " + ", ".join(mismatches))
+    except (OSError, KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
+        return result("manifest", "fail", f"Manifest validation failed: {exc}", "Reinstall from a verified package.")
+    return result("manifest", "pass", "Installed file hashes match the manifest.")
+
+
+def check_architecture() -> dict:
+    manager = rooted("/usr/bin/ipad-manager")
+    if not manager.is_file():
+        return result("architecture", "fail", "Manager executable is missing.")
+    output = run("file", "-b", str(manager))
+    if output.returncode != 0 or "x86-64" not in output.stdout:
+        return result("architecture", "fail", "Manager is not an x86-64 ELF executable.", "Install the amd64 package on x86-64 Ubuntu.")
+    return result("architecture", "pass", f"Manager architecture is x86-64 ({platform.machine()}).")
+
+
+def check_linkage() -> dict:
+    manager = rooted("/usr/bin/ipad-manager")
+    sdk = rooted("/usr/lib/ipad-manager/libipa.so")
+    if not manager.is_file() or not sdk.is_file():
+        return result("linkage", "fail", "Manager or private SDK is missing.")
+    dynamic = run("readelf", "-d", str(manager))
+    if dynamic.returncode != 0 or "libipa.so" not in dynamic.stdout or "$ORIGIN/../lib/ipad-manager" not in dynamic.stdout:
+        return result("linkage", "fail", "Manager does not declare the private SDK RUNPATH.", "Reinstall ipad-manager.")
+    return result("linkage", "pass", "Manager declares libipa.so and the private SDK RUNPATH.")
+
+
+def check_abi() -> dict:
+    sdk = rooted("/usr/lib/ipad-manager/libipa.so")
+    if not sdk.is_file():
+        return result("abi", "fail", "Private SDK is missing.")
+    dynamic = run("readelf", "-d", str(sdk))
+    symbols = run("nm", "-D", "--defined-only", str(sdk))
+    exported = [line for line in symbols.stdout.splitlines() if line.strip()]
+    if dynamic.returncode != 0 or "Library soname: [libipa.so]" not in dynamic.stdout:
+        return result("abi", "fail", "SDK SONAME is not libipa.so.", "Install an ABI-gated release.")
+    if symbols.returncode != 0 or len(exported) != 32:
+        return result("abi", "fail", f"SDK exports {len(exported)} symbols; expected 32.", "Install an ABI-gated release.")
+    return result("abi", "pass", "SDK SONAME and 32-symbol ABI baseline match.")
+
+
+def check_config() -> dict:
+    path = rooted("/etc/ipad-manager/config.json")
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(value, dict):
+            raise ValueError("top-level value is not an object")
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        return result("config", "fail", f"Configuration is invalid: {exc}", "Restore a valid JSON object configuration.")
+    return result("config", "pass", "Configuration is valid JSON.")
+
+
+def check_gui() -> dict:
+    if os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY"):
+        return result("gui", "pass", "A graphical display session is available.")
+    return result("gui", "warn", "No DISPLAY or WAYLAND_DISPLAY is available.", "Start from a desktop session or enable WSLg.")
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Validate an IPAd Manager installation")
+    parser.add_argument("--json", action="store_true", help="emit stable JSON")
+    args = parser.parse_args()
+    checks = [check_files(), check_manifest(), check_architecture(), check_linkage(), check_abi(), check_config(), check_gui()]
+    payload = {"schema_version": 1, "status": "fail" if any(c["status"] == "fail" for c in checks) else "pass", "checks": checks}
+    if args.json:
+        print(json.dumps(payload, ensure_ascii=False, sort_keys=True))
+    else:
+        for item in checks:
+            print(f"[{item['status'].upper()}] {item['id']}: {item['message']}")
+    return 1 if payload["status"] == "fail" else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
