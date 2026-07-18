@@ -1,0 +1,9 @@
+/etc/ipad-manager/config.json
+/usr/bin/ipad-manager
+/usr/bin/ipad-manager-diagnostics
+/usr/bin/ipad-manager-health
+/usr/lib/ipad-manager/libipa.so
+/usr/share/applications/ipad-manager.desktop
+/usr/share/ipad-manager/BUILD_METADATA.txt
+/usr/share/ipad-manager/DEPENDENCIES.lock.txt
+/usr/share/ipad-manager/install-manifest.json
