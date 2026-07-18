@@ -54,4 +54,18 @@ jobs:
         run: cmake --build ipad_host_app/build --parallel
 
       - name: Inspect binary dependencies
-        run: ldd ipad_host_app/build/ipad_host_app
+        shell: bash
+        run: |
+          set -euo pipefail
+          manager=ipad_host_app/build/ipad-manager
+          test -x "$manager"
+          "$manager" --help
+          "$manager" --version
+
+          dependencies="$(ldd "$manager")"
+          printf '%s\n' "$dependencies"
+          grep -q 'libipa.so =>' <<<"$dependencies"
+          if grep -q 'not found' <<<"$dependencies"; then
+            echo "Unresolved runtime dependency detected" >&2
+            exit 1
+          fi
