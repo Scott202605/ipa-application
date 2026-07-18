@@ -199,6 +199,7 @@ static void *ipa_init_thread_func(void *arg) {
   LOG_INIT(config->log_level);
   es9__ctor(&g_es9);
   es11__ctor(&g_es11);
+  es10_driver_selected = config->es10_driver_selected;
   switch (config->es10_driver_selected) {
   case ES10_DRIVER_AT:
     if ((err = smartcard_at_external__ctor(&g_es10_driver.at_external_driver,
@@ -245,6 +246,7 @@ destroy_driver:
   default:
     break;
   }
+  es10_driver_selected = ES10_DRIVER_NONE;
 
 error_exit:
   g_ipa_state = IPA_STATE_UNINITIALIZED;
@@ -311,6 +313,7 @@ void ipa_deinit_library() {
   default:
     break;
   }
+  es10_driver_selected = ES10_DRIVER_NONE;
   memset(&g_es10_driver, 0, sizeof(g_es10_driver));
   memset(&g_es10, 0, sizeof(g_es10));
   g_ipa_state = IPA_STATE_UNINITIALIZED;
@@ -359,7 +362,8 @@ static esipa_lwm2m_t *g_esipa_lwm2m = NULL;
 static void disconnect_lwm2m_service() {
   if (g_esipa_lwm2m) {
     LOGI("[disconnect_lwm2m_service] Stopping LwM2M service...");
-    esipa_async__disconnect(&g_esipa_mqtt->super);
+    esipa_async__disconnect(&g_esipa_lwm2m->super);
+    g_esipa_lwm2m = NULL;
   } else {
     LOGW("[disconnect_lwm2m_service] LwM2M service is not running.");
   }

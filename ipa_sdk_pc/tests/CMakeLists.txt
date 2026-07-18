@@ -21,3 +21,10 @@ add_test(
           --public ${PROJECT_SOURCE_DIR}/include/ipa_core.h
           --internal ${PROJECT_SOURCE_DIR}/ipa-src/hw/linux/ipa_core.h
 )
+
+add_test(
+  NAME ipa_core_cleanup_regressions
+  COMMAND ${Python3_EXECUTABLE}
+          ${CMAKE_CURRENT_SOURCE_DIR}/runtime/test_core_regressions.py
+          --source ${PROJECT_SOURCE_DIR}/ipa-src/hw/linux/ipa_core.c
+)
