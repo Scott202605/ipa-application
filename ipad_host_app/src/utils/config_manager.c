@@ -163,7 +163,7 @@ int config_from_json(const char *json_str, ipad_config_t *config) {
     // 解析版本
     char version[16] = {0};
     if (json_get_string_value(json_str, "config_version", version, sizeof(version)) == 0) {
-        strncpy(config->config_version, version, sizeof(config->config_version) - 1);
+        snprintf(config->config_version, sizeof(config->config_version), "%s", version);
     }
     
     // 解析 IPA 核心配置

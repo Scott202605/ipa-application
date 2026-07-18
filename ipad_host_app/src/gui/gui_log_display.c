@@ -9,10 +9,17 @@ GtkWidget* gui_log_display_create(void) {
     gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(text_view), FALSE);
     
     // 设置等宽字体
-    PangoFontDescription *font_desc = 
-        pango_font_description_from_string("Monospace 10");
-    gtk_widget_override_font(text_view, font_desc);
-    pango_font_description_free(font_desc);
+    GtkCssProvider *provider = gtk_css_provider_new();
+    gtk_css_provider_load_from_data(
+        provider,
+        "textview { font-family: monospace; font-size: 10pt; }",
+        -1,
+        NULL);
+    gtk_style_context_add_provider(
+        gtk_widget_get_style_context(text_view),
+        GTK_STYLE_PROVIDER(provider),
+        GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+    g_object_unref(provider);
     
     return text_view;
 }

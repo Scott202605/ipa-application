@@ -79,8 +79,10 @@ target_link_libraries(ipad_host_app
 )
 
 set_target_properties(ipad_host_app PROPERTIES
+    OUTPUT_NAME ipad-manager
     BUILD_RPATH "${IPAD_SDK_ROOT}/build/ipa-src/hw/linux;${IPAD_SDK_ROOT}/dist/lib"
-    INSTALL_RPATH "$ORIGIN/../lib"
+    INSTALL_RPATH "$ORIGIN/../lib/ipad-manager"
+    BUILD_WITH_INSTALL_RPATH OFF
 )
 
 # 编译选项

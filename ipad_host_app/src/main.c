@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include <gtk/gtk.h>
 
 #include "gui/gui_main.h"
@@ -9,11 +10,35 @@
 
 static main_window_t *g_main_window = NULL;
 
+static bool config_file_has_json_object_shape(const char *path) {
+    FILE *fp = fopen(path, "rb");
+    if (!fp) {
+        return false;
+    }
+
+    int first = EOF;
+    int last = EOF;
+    int current;
+    while ((current = fgetc(fp)) != EOF) {
+        if (!isspace((unsigned char)current)) {
+            if (first == EOF) {
+                first = current;
+            }
+            last = current;
+        }
+    }
+    bool read_ok = !ferror(fp);
+    fclose(fp);
+    return read_ok && first == '{' && last == '}';
+}
+
 static void print_usage(const char *program_name) {
-    printf("Usage: %s [--config <path>] [--help]\n", program_name);
+    printf("Usage: %s [--config <path>] [--check-config <path>] [--version] [--help]\n", program_name);
     printf("\n");
     printf("Options:\n");
     printf("  -c, --config <path>  Load JSON configuration from path\n");
+    printf("      --check-config <path>  Validate configuration without opening the GUI\n");
+    printf("      --version        Show version information\n");
     printf("  -h, --help           Show this help message\n");
 }
 
@@ -23,6 +48,26 @@ int main(int argc, char *argv[]) {
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0) {
             print_usage(argv[0]);
+            return EXIT_SUCCESS;
+        }
+        if (strcmp(argv[i], "--version") == 0) {
+            printf("IPAd Manager 1.1.0\n");
+            return EXIT_SUCCESS;
+        }
+        if (strcmp(argv[i], "--check-config") == 0) {
+            if (i + 1 >= argc) {
+                fprintf(stderr, "Missing config path for --check-config\n");
+                return EXIT_FAILURE;
+            }
+            const char *check_path = argv[++i];
+            ipad_config_t checked_config;
+            if (!config_file_has_json_object_shape(check_path) ||
+                config_load(check_path, &checked_config) != 0 ||
+                config_validate(&checked_config) != 0) {
+                fprintf(stderr, "Config validation failed: %s\n", argv[i]);
+                return EXIT_FAILURE;
+            }
+            printf("Config validation passed: %s\n", argv[i]);
             return EXIT_SUCCESS;
         }
         if (strcmp(argv[i], "-c") == 0 || strcmp(argv[i], "--config") == 0) {
