@@ -37,8 +37,11 @@ def main() -> int:
         failures.append("LwM2M disconnect incorrectly uses g_esipa_mqtt")
 
     init_worker = function_body(source, "ipa_init_thread_func")
-    expected_assignment = "es10_driver_selected = config->es10_driver_selected;"
-    if expected_assignment not in init_worker:
+    expected_assignments = (
+        "es10_driver_selected = config->es10_driver_selected;",
+        "es10_driver_selected = config->driver_type;",
+    )
+    if not any(assignment in init_worker for assignment in expected_assignments):
         failures.append("initialization does not snapshot selected ES10 driver")
     if "es10_driver_selected = ES10_DRIVER_NONE;" not in init_worker:
         failures.append("initialization failure does not reset selected ES10 driver")

@@ -29,6 +29,8 @@
 #endif
 
 #include "ipa_core.h"
+#include "runtime/ipa_config_snapshot.h"
+#include "runtime/ipa_runtime.h"
 
 #define BAUD_RATE 115200
 #define DEFAULT_LOG_LEVEL eLogInfo
@@ -153,12 +155,13 @@ static void *connect_esipa_http(void *ipa_config);
 
 #endif
 ipa_state_t g_ipa_state = IPA_STATE_UNINITIALIZED;
-static pthread_t g_init_thread_id;
-static cl_config_t g_cl_config;
 static ipa_event_cb_t g_event_cb = NULL;
 static ipa_task_callbacks_t g_task_callbacks = {0};
+static ipa_runtime_t *g_runtime = NULL;
+static pthread_once_t g_runtime_once = PTHREAD_ONCE_INIT;
 static int ipa_continue_initialization_internal(void);
 static void *ipa_init_thread_func(void *arg);
+static void initialize_runtime(void);
 
 void ipa_register_task_callbacks(const ipa_task_callbacks_t *callbacks) {
   if (callbacks) {
@@ -178,6 +181,11 @@ void notify_task_end(uint32_t task_id) {
   }
 }
 
+static void initialize_runtime(void) {
+  if (ipa_runtime_create(&g_runtime, notify_task_start, notify_task_end) != 0)
+    g_runtime = NULL;
+}
+
 void notify_app(ipa_event_type_t event_type, void *event_data) {
   if (g_event_cb != NULL) {
     g_event_cb(event_type, event_data);
@@ -191,7 +199,7 @@ static es10_driver_t g_es10_driver;
 static es10_driver_type_t es10_driver_selected = ES10_DRIVER_NONE;
 
 static void *ipa_init_thread_func(void *arg) {
-  cl_config_t *config = (cl_config_t *)arg;
+  ipa_core_config_snapshot_t *config = (ipa_core_config_snapshot_t *)arg;
   int err = -1;
   if (config->log_level < eLogErr || config->log_level > eLogTrace) {
     goto error_exit;
@@ -199,8 +207,8 @@ static void *ipa_init_thread_func(void *arg) {
   LOG_INIT(config->log_level);
   es9__ctor(&g_es9);
   es11__ctor(&g_es11);
-  es10_driver_selected = config->es10_driver_selected;
-  switch (config->es10_driver_selected) {
+  es10_driver_selected = config->driver_type;
+  switch (config->driver_type) {
   case ES10_DRIVER_AT:
     if ((err = smartcard_at_external__ctor(&g_es10_driver.at_external_driver,
                                            config->driver_id, BAUD_RATE)) < 0) {
@@ -239,7 +247,7 @@ destroy_es10:
   es10__destroy(&g_es10);
 destroy_driver:
   LOGI("[ipa_init_thread] Cleaning up driver due to initialization failure...");
-  switch (config->es10_driver_selected) {
+  switch (config->driver_type) {
   case ES10_DRIVER_AT:
     smartcard_at_external__destory(&g_es10_driver.at_external_driver);
     break;
@@ -249,30 +257,31 @@ destroy_driver:
   es10_driver_selected = ES10_DRIVER_NONE;
 
 error_exit:
+  ipa_runtime_complete_initialization(g_runtime, false);
   g_ipa_state = IPA_STATE_UNINITIALIZED;
+  notify_app(IPA_EVENT_INITIALIZATION_FAILED, &err);
   return NULL;
 }
 
 int ipa_init_library(cl_config_t *config, ipa_event_cb_t event_cb) {
-  if (g_ipa_state != IPA_STATE_UNINITIALIZED) {
+  int result;
+  if (!config) return -1;
+  pthread_once(&g_runtime_once, initialize_runtime);
+  if (!g_runtime) return -1;
+  if (ipa_runtime_state(g_runtime) != IPA_RUNTIME_UNINITIALIZED) {
     LOGW("IPA library already initialized or in progress. Current state: %d",
          g_ipa_state);
     return 0;
   }
-  g_ipa_state = IPA_STATE_INITIALIZING;
-  memcpy(&g_cl_config, config, sizeof(cl_config_t));
   g_event_cb = event_cb;
-
-  if (pthread_create(&g_init_thread_id, NULL, ipa_init_thread_func,
-                     &g_cl_config) != 0) {
+  result = ipa_runtime_start(g_runtime, config, ipa_init_thread_func);
+  if (result != 0) {
     LOGE("Failed to create IPA initialization thread.");
     g_ipa_state = IPA_STATE_UNINITIALIZED;
     g_event_cb = NULL;
     return -1;
   }
-
-  pthread_detach(g_init_thread_id);
-
+  g_ipa_state = IPA_STATE_INITIALIZING;
   return 0;
 }
 
@@ -282,9 +291,9 @@ static int ipa_continue_initialization_internal(void) {
   if ((err = ipa__init(&g_es9, &g_es10, &g_es11)) != 0) {
     LOGE("[ipa_continue] Error on init the IPA, rc %d", err);
     g_ipa_state = IPA_STATE_UNINITIALIZED;
-    notify_app(IPA_EVENT_INITIALIZATION_FAILED, &err);
     return err;
   }
+  ipa_runtime_complete_initialization(g_runtime, true);
   g_ipa_state = IPA_STATE_INITIALIZED;
   LOGI("[ipa_continue] IPA library initialized successfully.");
   err = 0;
@@ -293,11 +302,17 @@ static int ipa_continue_initialization_internal(void) {
 }
 
 void ipa_deinit_library() {
+  bool resources_ready;
   LOGI("De-initializing IPA library...\n");
-
-  if (g_ipa_state != IPA_STATE_INITIALIZED) {
+  pthread_once(&g_runtime_once, initialize_runtime);
+  if (!g_runtime) return;
+  resources_ready = ipa_runtime_stop(g_runtime);
+  if (!resources_ready) {
     LOGI("Warning: IPA library was not initialized or already "
          "de-initialized.\n");
+    g_ipa_state = IPA_STATE_UNINITIALIZED;
+    g_event_cb = NULL;
+    return;
   }
   if (!ipa__get_ipa_exit()) {
     ipa__set_ipa_exit();
@@ -317,6 +332,7 @@ void ipa_deinit_library() {
   memset(&g_es10_driver, 0, sizeof(g_es10_driver));
   memset(&g_es10, 0, sizeof(g_es10));
   g_ipa_state = IPA_STATE_UNINITIALIZED;
+  g_event_cb = NULL;
   LOGI("IPA library de-initialized.\n");
 }
 

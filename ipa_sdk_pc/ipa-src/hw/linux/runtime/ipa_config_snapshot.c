@@ -1,4 +1,4 @@
-#include "../../../include/ipa_core.h"
+#include "../../../../include/ipa_core.h"
 #include "ipa_config_snapshot.h"
 
 #include <stdlib.h>

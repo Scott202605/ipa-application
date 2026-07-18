@@ -52,3 +52,15 @@ target_include_directories(ipa_task_supervisor_test PRIVATE
   ${PROJECT_SOURCE_DIR}/ipa-src/hw/linux/runtime)
 target_link_libraries(ipa_task_supervisor_test PRIVATE pthread)
 add_test(NAME ipa_task_supervisor COMMAND ipa_task_supervisor_test)
+
+add_executable(ipa_runtime_lifecycle_test
+  runtime/test_runtime_lifecycle.c
+  ${PROJECT_SOURCE_DIR}/ipa-src/hw/linux/runtime/ipa_runtime.c
+  ${PROJECT_SOURCE_DIR}/ipa-src/hw/linux/runtime/ipa_config_snapshot.c
+  ${PROJECT_SOURCE_DIR}/ipa-src/hw/linux/runtime/ipa_task_supervisor.c)
+target_compile_features(ipa_runtime_lifecycle_test PRIVATE c_std_11)
+target_include_directories(ipa_runtime_lifecycle_test PRIVATE
+  ${PROJECT_SOURCE_DIR}/include
+  ${PROJECT_SOURCE_DIR}/ipa-src/hw/linux/runtime)
+target_link_libraries(ipa_runtime_lifecycle_test PRIVATE pthread)
+add_test(NAME ipa_runtime_lifecycle COMMAND ipa_runtime_lifecycle_test)
