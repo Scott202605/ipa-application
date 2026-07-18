@@ -1,2 +1,3 @@
 .worktrees/
 ipa_sdk_pc/build-*/
+dist/
