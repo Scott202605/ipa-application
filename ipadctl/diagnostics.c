@@ -35,6 +35,68 @@ int diagnostic_write_check_json(const diagnostic_check_t *check, char *out, size
     return written > 0 && (size_t)written < out_size ? 0 : -1;
 }
 
+static int append_text(char *out, size_t out_size, size_t *used, const char *text) {
+    int written;
+
+    if (!out || !used || !text || *used >= out_size) {
+        return -1;
+    }
+    written = snprintf(out + *used, out_size - *used, "%s", text);
+    if (written <= 0 || (size_t)written >= out_size - *used) {
+        return -1;
+    }
+    *used += (size_t)written;
+    return 0;
+}
+
+int diagnostic_write_report_json(const char *summary,
+                                 const char *next_action,
+                                 const diagnostic_check_t *checks,
+                                 size_t check_count,
+                                 char *out,
+                                 size_t out_size) {
+    size_t used = 0;
+    size_t i;
+    int ok = 1;
+    int written;
+
+    if (!out || out_size == 0 || (check_count > 0 && !checks)) {
+        return -1;
+    }
+    for (i = 0; i < check_count; ++i) {
+        if (!checks[i].ok && strcmp(checks[i].severity, "warning") != 0) {
+            ok = 0;
+        }
+    }
+
+    written = snprintf(out, out_size,
+                       "{\"ok\":%s,\"summary\":\"%s\",\"next_action\":\"%s\",\"checks\":[",
+                       ok ? "true" : "false",
+                       summary ? summary : "",
+                       next_action ? next_action : "");
+    if (written <= 0 || (size_t)written >= out_size) {
+        return -1;
+    }
+    used = (size_t)written;
+
+    for (i = 0; i < check_count; ++i) {
+        char check_json[512];
+        if (diagnostic_write_check_json(&checks[i], check_json, sizeof(check_json)) != 0) {
+            return -1;
+        }
+        if (i > 0 && append_text(out, out_size, &used, ",") != 0) {
+            return -1;
+        }
+        if (append_text(out, out_size, &used, check_json) != 0) {
+            return -1;
+        }
+    }
+    if (append_text(out, out_size, &used, "]}") != 0) {
+        return -1;
+    }
+    return 0;
+}
+
 int ipadctl_doctor_with_root(const char *config_path, const char *socket_path, const char *root, char *out, size_t out_size) {
     char config_json[IPAD_MAX_JSON_MESSAGE];
     ipadctl_platform_info_t platform;

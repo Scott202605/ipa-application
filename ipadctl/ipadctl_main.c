@@ -6,6 +6,7 @@
 #include "ipad_socket.h"
 #include "platform_check.h"
 #include "setup_commands.h"
+#include "support_bundle.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -21,6 +22,7 @@ static void usage(const char *argv0) {
     printf("  %s bootstrap check --real --at-device <path>\n", argv0);
     printf("  %s platform check\n", argv0);
     printf("  %s [--config <path>] [--socket <path>] doctor\n", argv0);
+    printf("  %s [--config <path>] [--socket <path>] support bundle [--output <dir>]\n", argv0);
     printf("  %s [--socket <path>] status\n", argv0);
     printf("  %s [--socket <path>] sdk init\n", argv0);
     printf("  %s [--socket <path>] sdk status\n", argv0);
@@ -59,11 +61,13 @@ int main(int argc, char **argv) {
     int argi = 1;
     char request[IPAD_MAX_JSON_MESSAGE];
 
-    while (argc - argi >= 2) {
-        if (strcmp(argv[argi], "--socket") == 0) {
+    while (argc - argi >= 1) {
+        if (strcmp(argv[argi], "--json") == 0) {
+            argi += 1;
+        } else if (argc - argi >= 2 && strcmp(argv[argi], "--socket") == 0) {
             socket_path = argv[argi + 1];
             argi += 2;
-        } else if (strcmp(argv[argi], "--config") == 0) {
+        } else if (argc - argi >= 2 && strcmp(argv[argi], "--config") == 0) {
             config_path = argv[argi + 1];
             argi += 2;
         } else {
@@ -106,6 +110,12 @@ int main(int argc, char **argv) {
         int rc = ipadctl_doctor(config_path, socket_path, output, sizeof(output));
         fputs(output, rc == 0 ? stdout : stderr);
         return rc;
+    }
+    if (argc - argi >= 1 && strcmp(argv[argi], "support") == 0) {
+        int rc = ipadctl_support_command(argc - argi, argv + argi, config_path, socket_path);
+        if (rc != 2) {
+            return rc;
+        }
     }
 
     if (argc - argi == 1 && strcmp(argv[argi], "status") == 0) {

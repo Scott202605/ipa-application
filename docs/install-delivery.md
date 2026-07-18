@@ -84,3 +84,7 @@ ipadctl doctor
 ```
 
 If validation fails, use `docs/troubleshooting-guide.md` from the release package.
+
+## Optional Debug Console
+
+The debug console is an optional package. Production headless images may omit it as long as `ipadctl` and the support-bundle command are present.

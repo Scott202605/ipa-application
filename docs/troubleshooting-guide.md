@@ -39,4 +39,10 @@ sudo tail -n 100 /var/lib/ipad-manager/tasks.jsonl
 sudo tail -n 100 /var/log/ipad-manager/audit.jsonl
 ```
 
+For GUI-assisted troubleshooting, use the optional debug console when installed. The same evidence can always be collected with:
+
+```bash
+ipadctl support bundle --output /tmp/ipad-support
+```
+
 Redact activation codes, ICCIDs when required by policy, network credentials, certificates, and customer identifiers before sharing evidence outside the device team.

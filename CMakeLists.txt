@@ -6,6 +6,11 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 
 option(IPAD_BUILD_TESTS "Build IPAd Manager tests" ON)
 option(IPAD_STRICT_WARNINGS "Treat compiler warnings as errors" ON)
+option(IPAD_BUILD_DEBUG_GUI "Build optional IPAd Manager debug GUI assets" OFF)
+
+if(IPAD_BUILD_DEBUG_GUI)
+  message(STATUS "IPAD_BUILD_DEBUG_GUI is enabled; debug console implementation is not built by the core C target")
+endif()
 
 function(ipad_target_warnings target)
   target_compile_options(${target} PRIVATE -Wall -Wextra)

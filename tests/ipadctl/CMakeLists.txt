@@ -29,3 +29,7 @@ add_test(NAME test_platform_command COMMAND test_platform_command)
 add_executable(test_bootstrap_commands test_bootstrap_commands.c)
 target_link_libraries(test_bootstrap_commands PRIVATE ipadctl_testlib ipad_common)
 add_test(NAME test_bootstrap_commands COMMAND test_bootstrap_commands)
+
+add_executable(test_support_bundle test_support_bundle.c)
+target_link_libraries(test_support_bundle PRIVATE ipadctl_testlib ipad_common)
+add_test(NAME test_support_bundle COMMAND test_support_bundle)

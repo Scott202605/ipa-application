@@ -37,6 +37,9 @@ jobs:
       - name: Configure manager components
         run: cmake -S . -B build-manager -DIPAD_BUILD_TESTS=ON
 
+      - name: Check debug GUI is optional by default
+        run: grep -q 'IPAD_BUILD_DEBUG_GUI:BOOL=OFF' build-manager/CMakeCache.txt
+
       - name: Build manager components
         run: cmake --build build-manager --parallel
 

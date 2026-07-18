@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>IPAd Manager Debug Console</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Debug Console</p>
+        <h1>IPAd Manager</h1>
+      </div>
+      <strong id="health" class="health warning">Checking</strong>
+    </header>
+
+    <section class="summary">
+      <p id="summary">Loading diagnostics...</p>
+      <code id="next-action"></code>
+    </section>
+
+    <section class="toolbar" aria-label="Console actions">
+      <button id="refresh" type="button">Refresh</button>
+      <button id="bundle" type="button">Support Bundle</button>
+    </section>
+
+    <section id="checks" class="checks" aria-live="polite"></section>
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>

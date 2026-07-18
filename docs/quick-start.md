@@ -49,6 +49,20 @@ ipadctl doctor
 
 Use `--config <path>` when validating a non-default config file. Use `--socket <path>` with `doctor` when the daemon is running on a test socket.
 
+## Optional Debug Console
+
+The GUI debug console is optional. It is useful during integration and support, but headless devices can use the CLI commands in this guide directly.
+
+Start with CLI diagnostics:
+
+```bash
+ipadctl platform check
+ipadctl config check
+ipadctl doctor
+```
+
+See `tools/debug-console/README.md` for the planned GUI-assisted flow and SSH forwarding model.
+
 ## Compatibility Bootstrap
 
 On non-Ubuntu or embedded Linux variants, preview the deployment steps before installing service files:
