@@ -14,5 +14,6 @@ typedef struct {
 void diagnostic_check_set(diagnostic_check_t *check, const char *name, int ok, const char *severity, const char *message, const char *suggestion);
 int diagnostic_write_check_json(const diagnostic_check_t *check, char *out, size_t out_size);
 int ipadctl_doctor(const char *config_path, const char *socket_path, char *out, size_t out_size);
+int ipadctl_doctor_with_root(const char *config_path, const char *socket_path, const char *root, char *out, size_t out_size);
 
 #endif
