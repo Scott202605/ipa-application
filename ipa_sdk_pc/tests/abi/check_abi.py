@@ -51,7 +51,9 @@ def compare(label: str, expected, actual) -> list[str]:
 
 
 def write_version_script(symbols: list[str], path: pathlib.Path) -> None:
-    lines = ["IPA_1.0 {", "  global:"]
+    # An anonymous version script constrains visibility without adding symbol
+    # versions. Existing binaries currently reference unversioned symbols.
+    lines = ["{", "  global:"]
     lines.extend(f"    {symbol};" for symbol in symbols)
     lines.extend(["  local: *;", "};", ""])
     path.parent.mkdir(parents=True, exist_ok=True)

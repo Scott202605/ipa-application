@@ -15,9 +15,9 @@ add_test(
 )
 
 add_test(
-  NAME ipa_internal_header_drift_known_debt
+  NAME ipa_public_internal_header_compatibility
   COMMAND ${Python3_EXECUTABLE}
           ${CMAKE_CURRENT_SOURCE_DIR}/abi/check_header_drift.py
+          --public ${PROJECT_SOURCE_DIR}/include/ipa_core.h
           --internal ${PROJECT_SOURCE_DIR}/ipa-src/hw/linux/ipa_core.h
 )
-set_tests_properties(ipa_internal_header_drift_known_debt PROPERTIES WILL_FAIL TRUE)

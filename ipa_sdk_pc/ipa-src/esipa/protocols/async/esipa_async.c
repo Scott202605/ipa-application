@@ -218,7 +218,7 @@ static ErrCode esipa_async__init(esipa_t* const me) {
         return rc;
     }
 
-    notify_app(IPA_EVENT_SERVICE_START_SUCCESS, NULL);
+    notify_app(IPA_EVENT_SERVICE_CONNECT_SUCCESS, NULL);
 
     while (esipa_async__keep_alive(me_) && !ipa__get_ipa_exit() && me_->is_connected) {
         /* Get clocks to calculate the time elapsed between now and the last transmission */

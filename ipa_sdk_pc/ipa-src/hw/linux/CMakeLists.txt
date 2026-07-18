@@ -9,6 +9,13 @@ target_include_directories(${PROJECT_NAME} PRIVATE .)
 target_sources(${PROJECT_NAME} PRIVATE ipa_core.c)
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "ipa")
 
+if(UNIX AND NOT APPLE)
+    target_link_options(${PROJECT_NAME} PRIVATE
+        "LINKER:--version-script=${CMAKE_CURRENT_SOURCE_DIR}/ipa.exports.map")
+    set_property(TARGET ${PROJECT_NAME} APPEND PROPERTY
+        LINK_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/ipa.exports.map)
+endif()
+
 target_compile_options(${PROJECT_NAME} PUBLIC -g -Wall  -Wno-error -fvisibility=hidden)
 # Only for Jenkins (MACOS)
 if (APPLE)

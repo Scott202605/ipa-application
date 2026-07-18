@@ -1,0 +1,36 @@
+{
+  global:
+    connect_http_service;
+    connect_lwm2m_service;
+    connect_mqtt_service;
+    ipa__disable_emergency_profile;
+    ipa__enable_emergency_profile;
+    ipa__execute_fallback_mechanism;
+    ipa__execute_profile_rollback_result;
+    ipa__free_certs_data;
+    ipa__free_euicc_info1_data;
+    ipa__free_euicc_info2_data;
+    ipa__get_all_profiles_info;
+    ipa__get_certs;
+    ipa__get_eid_cstring;
+    ipa__get_eim_configuration;
+    ipa__get_euicc_info_1;
+    ipa__get_euicc_info_2;
+    ipa__notifications_delivery__all_notifications;
+    ipa__notifications_delivery__free_notification_list;
+    ipa__notifications_delivery__initialize_notifications_group_list;
+    ipa__notifications_delivery__remove_all_notifications;
+    ipa__notifications_delivery__remove_notification;
+    ipa__notifications_delivery__seq_number_single_notification_delivery;
+    ipa__register_profile_state_callback;
+    ipa__return_from_fallback;
+    ipa_deinit_library;
+    ipa_init_library;
+    ipa_local__add_initial_eim;
+    ipa_local__configure_immediate_profile_enabling;
+    ipa_local__euicc_memory_reset;
+    ipa_local__set_default_dp_address;
+    ipa_register_task_callbacks;
+    stop_eim_service;
+  local: *;
+};
