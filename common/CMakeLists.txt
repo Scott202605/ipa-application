@@ -8,8 +8,4 @@ target_include_directories(ipad_common PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-target_compile_options(ipad_common PRIVATE
-    -Wall
-    -Wextra
-    -Werror
-)
+ipad_target_warnings(ipad_common)

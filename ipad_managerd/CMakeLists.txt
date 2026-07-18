@@ -12,11 +12,11 @@ add_library(ipad_managerd_testlib STATIC
 )
 target_link_libraries(ipad_managerd_testlib PUBLIC ipad_common)
 target_include_directories(ipad_managerd_testlib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_compile_options(ipad_managerd_testlib PRIVATE -Wall -Wextra -Werror)
+ipad_target_warnings(ipad_managerd_testlib)
 
 add_executable(ipad-managerd
     managerd_main.c
     ${IPAD_MANAGERD_SOURCES}
 )
 target_link_libraries(ipad-managerd PRIVATE ipad_common)
-target_compile_options(ipad-managerd PRIVATE -Wall -Wextra -Werror)
+ipad_target_warnings(ipad-managerd)

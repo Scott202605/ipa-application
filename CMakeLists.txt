@@ -5,6 +5,14 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
 option(IPAD_BUILD_TESTS "Build IPAd Manager tests" ON)
+option(IPAD_STRICT_WARNINGS "Treat compiler warnings as errors" ON)
+
+function(ipad_target_warnings target)
+  target_compile_options(${target} PRIVATE -Wall -Wextra)
+  if(IPAD_STRICT_WARNINGS)
+    target_compile_options(${target} PRIVATE -Werror)
+  endif()
+endfunction()
 
 add_subdirectory(common)
 add_subdirectory(ipad_managerd)
