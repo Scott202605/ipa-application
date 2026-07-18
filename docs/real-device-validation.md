@@ -9,6 +9,7 @@ For the shorter operator-first flow, start with `docs/quick-start.md`.
 - eUICC or modem access configured for the service user.
 - `ipad-managerd`, `ipad-sdk-worker`, and `ipadctl` built from the same commit.
 - The runtime user is in the group that can access the selected AT serial or PC/SC device.
+- On non-systemd systems, choose a profile from `packaging/openrc/`, `packaging/sysvinit/`, or `packaging/manual/`.
 
 ## Build
 
@@ -50,6 +51,8 @@ Before using the installed system service, validate local configuration and devi
 
 ```bash
 ipadctl device list
+ipadctl platform check
+ipadctl bootstrap check --real --at-device /dev/ttyUSB2
 ipadctl config show
 ipadctl config check
 ipadctl doctor
@@ -75,6 +78,15 @@ Confirm:
 - The user running `ipadctl` belongs to that group.
 - The AT serial path or PC/SC reader is accessible to the service user.
 - `ipadctl doctor` reports the daemon socket as reachable after the service starts.
+
+For OpenRC, use `packaging/openrc/ipad-managerd` and validate with:
+
+```bash
+sudo rc-service ipad-managerd restart
+ipadctl doctor
+```
+
+For custom supervisors, use `packaging/manual/README.md`.
 
 ## End-to-End CLI Validation
 

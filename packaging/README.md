@@ -4,12 +4,29 @@ This directory contains Linux deployment artifacts for the single-device IPAd Ma
 
 For first-run commands, see `docs/quick-start.md`.
 
+Run `ipadctl platform check` before choosing a service profile on non-Ubuntu devices.
+
 ## Runtime paths
 
 - Socket: `/run/ipad-manager/ipad-manager.sock`
 - Config: `/etc/ipad-manager/config.json`
 - State: `/var/lib/ipad-manager`
 - Logs: `/var/log/ipad-manager`
+
+## Service profiles
+
+- `packaging/systemd/`: default Ubuntu and Debian profile.
+- `packaging/openrc/`: Alpine and OpenRC-style systems.
+- `packaging/sysvinit/`: legacy SysV init systems.
+- `packaging/manual/`: Yocto, Buildroot, OpenWrt, containers, and custom supervisors.
+
+Preview the recommended flow:
+
+```bash
+ipadctl platform check
+ipadctl bootstrap check --mock
+ipadctl bootstrap check --real --at-device /dev/ttyUSB2
+```
 
 ## Service user
 
@@ -57,5 +74,6 @@ Validate the final configuration with:
 ```bash
 ipadctl config show
 ipadctl config check
+ipadctl platform check
 ipadctl doctor
 ```

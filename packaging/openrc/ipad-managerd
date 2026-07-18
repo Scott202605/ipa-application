@@ -1,0 +1,20 @@
+#!/sbin/openrc-run
+
+name="ipad-managerd"
+description="IPAd Manager daemon"
+command="/usr/local/bin/ipad-managerd"
+command_args="--config /etc/ipad-manager/config.json"
+command_user="ipad:ipad"
+pidfile="/run/ipad-manager/ipad-managerd.pid"
+command_background="yes"
+
+depend() {
+    need localmount
+    after bootmisc
+}
+
+start_pre() {
+    checkpath --directory --owner ipad:ipad --mode 0755 /run/ipad-manager
+    checkpath --directory --owner ipad:ipad --mode 0755 /var/lib/ipad-manager
+    checkpath --directory --owner ipad:ipad --mode 0755 /var/log/ipad-manager
+}

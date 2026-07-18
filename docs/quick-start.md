@@ -39,12 +39,25 @@ Use the returned task id from the download response instead of the example `task
 ## Configuration Checks
 
 ```bash
+ipadctl platform check
 ipadctl config show
 ipadctl config check
 ipadctl doctor
 ```
 
 Use `--config <path>` when validating a non-default config file. Use `--socket <path>` with `doctor` when the daemon is running on a test socket.
+
+## Compatibility Bootstrap
+
+On non-Ubuntu or embedded Linux variants, preview the deployment steps before installing service files:
+
+```bash
+ipadctl platform check
+ipadctl bootstrap check --mock
+ipadctl bootstrap check --real --at-device /dev/ttyUSB2
+```
+
+Use `packaging/openrc/`, `packaging/sysvinit/`, or `packaging/manual/` when `platform check` reports a degraded non-systemd platform.
 
 ## Troubleshooting
 
@@ -57,6 +70,7 @@ sudo tail -n 50 /var/log/ipad-manager/audit.jsonl
 Common next actions:
 
 - Missing daemon socket: restart `ipad-managerd` or check `socket_path`.
+- Non-systemd platform: run `ipadctl bootstrap check --mock` or choose a matching packaging profile.
 - Missing worker: install `ipad-sdk-worker` or update `worker_path`.
 - Serial permission failure: add the service user to `dialout` or install matching udev rules.
 - Missing AT device: run `ipadctl device list` after the module is connected.
