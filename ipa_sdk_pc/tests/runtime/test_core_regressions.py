@@ -31,10 +31,10 @@ def main() -> int:
     failures = []
 
     lwm2m = function_body(source, "disconnect_lwm2m_service")
-    if "g_esipa_lwm2m->super" not in lwm2m:
-        failures.append("LwM2M disconnect does not use g_esipa_lwm2m")
-    if "g_esipa_mqtt->super" in lwm2m:
-        failures.append("LwM2M disconnect incorrectly uses g_esipa_mqtt")
+    if "IPA_EIM_SLOT_LWM2M" not in lwm2m:
+        failures.append("LwM2M disconnect does not target its registry slot")
+    if "IPA_EIM_SLOT_MQTT" in lwm2m:
+        failures.append("LwM2M disconnect incorrectly targets the MQTT slot")
 
     init_worker = function_body(source, "ipa_init_thread_func")
     expected_assignments = (

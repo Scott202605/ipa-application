@@ -79,3 +79,12 @@ target_include_directories(ipa_euicc_executor_test PRIVATE
   ${PROJECT_SOURCE_DIR}/ipa-src/hw/linux/runtime)
 target_link_libraries(ipa_euicc_executor_test PRIVATE pthread)
 add_test(NAME ipa_euicc_executor COMMAND ipa_euicc_executor_test)
+
+add_executable(ipa_eim_registry_test
+  runtime/test_eim_registry.c
+  ${PROJECT_SOURCE_DIR}/ipa-src/hw/linux/runtime/ipa_eim_registry.c)
+target_compile_features(ipa_eim_registry_test PRIVATE c_std_11)
+target_include_directories(ipa_eim_registry_test PRIVATE
+  ${PROJECT_SOURCE_DIR}/ipa-src/hw/linux/runtime)
+target_link_libraries(ipa_eim_registry_test PRIVATE pthread)
+add_test(NAME ipa_eim_registry COMMAND ipa_eim_registry_test)

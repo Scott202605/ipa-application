@@ -30,6 +30,7 @@
 
 #include "ipa_core.h"
 #include "runtime/ipa_config_snapshot.h"
+#include "runtime/ipa_eim_registry.h"
 #include "runtime/ipa_runtime.h"
 
 #define BAUD_RATE 115200
@@ -159,9 +160,12 @@ static ipa_event_cb_t g_event_cb = NULL;
 static ipa_task_callbacks_t g_task_callbacks = {0};
 static ipa_runtime_t *g_runtime = NULL;
 static pthread_once_t g_runtime_once = PTHREAD_ONCE_INIT;
+static ipa_eim_registry_t *g_eim_registry = NULL;
+static pthread_once_t g_eim_registry_once = PTHREAD_ONCE_INIT;
 static int ipa_continue_initialization_internal(void);
 static void *ipa_init_thread_func(void *arg);
 static void initialize_runtime(void);
+static void initialize_eim_registry(void);
 
 void ipa_register_task_callbacks(const ipa_task_callbacks_t *callbacks) {
   if (callbacks) {
@@ -184,6 +188,11 @@ void notify_task_end(uint32_t task_id) {
 static void initialize_runtime(void) {
   if (ipa_runtime_create(&g_runtime, notify_task_start, notify_task_end) != 0)
     g_runtime = NULL;
+}
+
+static void initialize_eim_registry(void) {
+  if (ipa_eim_registry_create(&g_eim_registry) != 0)
+    g_eim_registry = NULL;
 }
 
 void notify_app(ipa_event_type_t event_type, void *event_data) {
@@ -338,33 +347,40 @@ void ipa_deinit_library() {
 
 #ifdef ENABLE_MQTT
 
-static esipa_mqtt_t *g_esipa_mqtt = NULL;
-
 /* Extern declaration since it is not in the header explicitly included here */
 ErrCode esipa_async__disconnect(esipa_async_t *const me);
 
+static void disconnect_async_object(void *object) {
+  esipa_async__disconnect((esipa_async_t *)object);
+}
+
+static void destroy_mqtt_snapshot(void *snapshot) {
+  ipa_mqtt_config_snapshot_destroy(snapshot);
+}
+
 static void disconnect_mqtt_service() {
-  if (g_esipa_mqtt) {
-    LOGI("[disconnect_mqtt_service] Stopping MQTT service...");
-    esipa_async__disconnect(&g_esipa_mqtt->super);
-    LOGI("[disconnect_mqtt_service] MQTT service stopped.");
-    g_esipa_mqtt = NULL;
-  } else {
-    LOGW("[disconnect_mqtt_service] MQTT service is not running.");
-  }
+  if (!g_eim_registry) return;
+  LOGI("[disconnect_mqtt_service] Stopping MQTT service...");
+  ipa_eim_registry_stop(g_eim_registry, IPA_EIM_SLOT_MQTT,
+                        disconnect_async_object);
 }
 
 ErrCode connect_mqtt_service(const ipa_config_mqtt_t *config) {
-  pthread_t mqtt_thread = {0};
+  ipa_mqtt_config_snapshot_t *snapshot = NULL;
   int err;
+  if (!config) return eBadArg;
+  pthread_once(&g_eim_registry_once, initialize_eim_registry);
+  if (!g_eim_registry) return eFatal;
+  if (ipa_mqtt_config_snapshot_create(config, &snapshot) != eOk) return eFatal;
   LOGI("[start_mqtt_service] Starting MQTT service thread...");
-  if (0 != (err = pthread_create(&mqtt_thread, NULL, connect_esipa_mqtt,
-                                 (void *)config))) {
+  if (0 != (err = ipa_eim_registry_start(
+                    g_eim_registry, IPA_EIM_SLOT_MQTT, connect_esipa_mqtt,
+                    snapshot, destroy_mqtt_snapshot))) {
+    ipa_mqtt_config_snapshot_destroy(snapshot);
     LOGE("[start_mqtt_service] Error creating the MQTT ESipa thread, err %d",
          err);
     return eFatal;
   }
-  pthread_detach(mqtt_thread);
   LOGI("[start_mqtt_service] MQTT service thread started successfully.");
   return eOk;
 }
@@ -373,58 +389,71 @@ ErrCode connect_mqtt_service(const ipa_config_mqtt_t *config) {
 
 #ifdef ENABLE_LWM2M
 
-static esipa_lwm2m_t *g_esipa_lwm2m = NULL;
+static void destroy_lwm2m_snapshot(void *snapshot) {
+  ipa_lwm2m_config_snapshot_destroy(snapshot);
+}
 
 static void disconnect_lwm2m_service() {
-  if (g_esipa_lwm2m) {
-    LOGI("[disconnect_lwm2m_service] Stopping LwM2M service...");
-    esipa_async__disconnect(&g_esipa_lwm2m->super);
-    g_esipa_lwm2m = NULL;
-  } else {
-    LOGW("[disconnect_lwm2m_service] LwM2M service is not running.");
-  }
+  if (!g_eim_registry) return;
+  LOGI("[disconnect_lwm2m_service] Stopping LwM2M service...");
+  ipa_eim_registry_stop(g_eim_registry, IPA_EIM_SLOT_LWM2M,
+                        disconnect_async_object);
 }
 
 ErrCode connect_lwm2m_service(const ipa_config_lwm2m_t *config) {
-  pthread_t lwm2m_thread = {0};
+  ipa_lwm2m_config_snapshot_t *snapshot = NULL;
   int err;
+  if (!config) return eBadArg;
+  pthread_once(&g_eim_registry_once, initialize_eim_registry);
+  if (!g_eim_registry) return eFatal;
+  if (ipa_lwm2m_config_snapshot_create(config, &snapshot) != eOk) return eFatal;
   LOGI("[disconnect_lwm2m_service] Starting LwM2M service thread...");
-  if (0 != (err = pthread_create(&lwm2m_thread, NULL, connect_esipa_lwm2m,
-                                 (void *)config))) {
+  if (0 != (err = ipa_eim_registry_start(
+                    g_eim_registry, IPA_EIM_SLOT_LWM2M, connect_esipa_lwm2m,
+                    snapshot, destroy_lwm2m_snapshot))) {
+    ipa_lwm2m_config_snapshot_destroy(snapshot);
     LOGE("[disconnect_lwm2m_service] Error creating the LwM2M ESipa thread, "
          "err %d",
          err);
     return eFatal;
   }
-  pthread_detach(lwm2m_thread);
   LOGI("[disconnect_lwm2m_service] LwM2M service thread started successfully.");
   return eOk;
 }
 #endif
 #ifdef ENABLE_HTTP_ESIPA
 
-static esipa_http_t *g_esipa_http = NULL;
+static void disconnect_http_object(void *object) {
+  esipa_http__destroy((esipa_http_t *)object);
+}
+
+static void destroy_http_snapshot(void *snapshot) {
+  ipa_http_config_snapshot_destroy(snapshot);
+}
 
 static void disconnect_http_service() {
-  if (g_esipa_http) {
-    LOGI("[disconnect_http_service] Stopping HTTP service...");
-    esipa_http__destroy(g_esipa_http);
-  } else {
-    LOGW("[disconnect_http_service] HTTP service is not running.");
-  }
+  if (!g_eim_registry) return;
+  LOGI("[disconnect_http_service] Stopping HTTP service...");
+  ipa_eim_registry_stop(g_eim_registry, IPA_EIM_SLOT_HTTP,
+                        disconnect_http_object);
 }
 
 ErrCode connect_http_service(const ipa_config_http_t *config) {
-  pthread_t http_thread = {0};
+  ipa_http_config_snapshot_t *snapshot = NULL;
   int err;
+  if (!config) return eBadArg;
+  pthread_once(&g_eim_registry_once, initialize_eim_registry);
+  if (!g_eim_registry) return eFatal;
+  if (ipa_http_config_snapshot_create(config, &snapshot) != eOk) return eFatal;
   LOGI("[connect_http_service] Starting HTTP service thread...");
-  if (0 != (err = pthread_create(&http_thread, NULL, connect_esipa_http,
-                                 (void *)config))) {
+  if (0 != (err = ipa_eim_registry_start(
+                    g_eim_registry, IPA_EIM_SLOT_HTTP, connect_esipa_http,
+                    snapshot, destroy_http_snapshot))) {
+    ipa_http_config_snapshot_destroy(snapshot);
     LOGE("[connect_http_service] Error creating the HTTP ESipa thread, err %d",
          err);
     return eFatal;
   }
-  pthread_detach(http_thread);
   LOGI("[connect_http_service] HTTP service thread started successfully.");
   return eOk;
 }
@@ -448,32 +477,26 @@ void stop_eim_service() {
 static void *connect_esipa_mqtt(void *ipa_config) {
   ErrCode rc;
   esipa_mqtt_t esipa_mqtt;
-
-  if (g_esipa_mqtt != NULL) {
-    LOGW("[connect_esipa_mqtt] MQTT service is already running.");
-    return NULL;
-  }
-  g_esipa_mqtt = &esipa_mqtt;
+  ipa_mqtt_config_snapshot_t *snapshot = ipa_config;
+  ipa_config_mqtt_t *config = &snapshot->value;
 
   if ((rc = esipa_mqtt__ctor(&esipa_mqtt,
-                             ((ipa_config_mqtt_t *)ipa_config)->protocol,
-                             ((ipa_config_mqtt_t *)ipa_config)->hostname,
-                             ((ipa_config_mqtt_t *)ipa_config)->port,
-                             ((ipa_config_mqtt_t *)ipa_config)->username,
-                             ((ipa_config_mqtt_t *)ipa_config)->password,
-                             &((ipa_config_mqtt_t *)ipa_config)->tls_config,
-                             &((ipa_config_mqtt_t *)ipa_config)->proxy_config,
+                             config->protocol, config->hostname, config->port,
+                             config->username, config->password,
+                             &config->tls_config, &config->proxy_config,
                              ASN1_DATA_BINDING)) != eOk) {
     LOGE("[start_esipa_mqtt] Error initializing the ESipa MQTT, rc %d", rc);
-    g_esipa_mqtt = NULL;
     return NULL;
   }
+  ipa_eim_registry_publish(g_eim_registry, IPA_EIM_SLOT_MQTT,
+                           &esipa_mqtt.super);
 
   if ((rc = esipa__init((esipa_t *)&esipa_mqtt)) != eOk) {
     LOGE("[start_esipa_mqtt] Error connecting the ESipa MQTT, rc %d", rc);
   }
 
-  g_esipa_mqtt = NULL;
+  ipa_eim_registry_clear(g_eim_registry, IPA_EIM_SLOT_MQTT,
+                         &esipa_mqtt.super);
   esipa_mqtt__destroy(&esipa_mqtt);
   return NULL;
 }
@@ -485,27 +508,25 @@ static void *connect_esipa_mqtt(void *ipa_config) {
 static void *connect_esipa_lwm2m(void *ipa_config) {
   ErrCode rc;
   esipa_lwm2m_t esipa_lwm2m;
-
-  g_esipa_lwm2m = &esipa_lwm2m;
+  ipa_lwm2m_config_snapshot_t *snapshot = ipa_config;
+  ipa_config_lwm2m_t *config = &snapshot->value;
 
   if ((rc = esipa_lwm2m__ctor(
-           &esipa_lwm2m, ((ipa_config_lwm2m_t *)ipa_config)->hostname,
-           ((ipa_config_lwm2m_t *)ipa_config)->port,
-           ((ipa_config_lwm2m_t *)ipa_config)->dtls,
-           ((ipa_config_lwm2m_t *)ipa_config)->bootstrap,
-           ((ipa_config_lwm2m_t *)ipa_config)->ipv4,
-           ((ipa_config_lwm2m_t *)ipa_config)->client_name,
+           &esipa_lwm2m, config->hostname, config->port, config->dtls,
+           config->bootstrap, config->ipv4, config->client_name,
            ASN1_DATA_BINDING)) != eOk) {
     LOGE("[start_esipa_lwm2m] Error initializing the ESipa LwM2m, rc %d", rc);
-    g_esipa_lwm2m = NULL;
     return NULL;
   }
+  ipa_eim_registry_publish(g_eim_registry, IPA_EIM_SLOT_LWM2M,
+                           &esipa_lwm2m.super);
   if ((rc = esipa__init((esipa_t *)&esipa_lwm2m)) != eOk) {
     LOGE("Error connecting the ESipa LwM2M, rc %d", rc);
   }
 
+  ipa_eim_registry_clear(g_eim_registry, IPA_EIM_SLOT_LWM2M,
+                         &esipa_lwm2m.super);
   esipa_lwm2m__destroy(&esipa_lwm2m);
-  g_esipa_lwm2m = NULL;
 
   return NULL;
 }
@@ -515,19 +536,21 @@ static void *connect_esipa_lwm2m(void *ipa_config) {
 static void *connect_esipa_http(void *ipa_config) {
   ErrCode rc;
   esipa_http_t esipa_http = {0};
-  ipa_config_http_t *config = (ipa_config_http_t *)ipa_config;
-
-  g_esipa_http = &esipa_http;
+  ipa_http_config_snapshot_t *snapshot = ipa_config;
+  ipa_config_http_t *config = &snapshot->value;
 
   esipa_http__ctor(&esipa_http, config->fqdn,
                    config->max_time_without_transmission,
                    ASN1_DATA_BINDING, config->http_timeout,
                    config->sync_sleep_time);
+  ipa_eim_registry_publish(g_eim_registry, IPA_EIM_SLOT_HTTP, &esipa_http);
   if ((rc = esipa__init((esipa_t *)&esipa_http)) != eOk) {
+    ipa_eim_registry_clear(g_eim_registry, IPA_EIM_SLOT_HTTP, &esipa_http);
     esipa_http__destroy(&esipa_http);
     LOGE("Error on initialize the ESipa HTTP, rc %d", rc);
+    return NULL;
   }
-  g_esipa_http = NULL;
+  ipa_eim_registry_clear(g_eim_registry, IPA_EIM_SLOT_HTTP, &esipa_http);
   return NULL;
 }
 #endif
