@@ -1,0 +1,13 @@
+# Commercial release build dependencies for Ubuntu x86-64
+cmake >= 3.22.1
+gcc >= 11 (C11 and pthread support)
+libcurl4-openssl-dev
+libserialport-dev
+libpaho-mqtt-dev
+python3 >= 3.10
+binutils (readelf, nm)
+valgrind
+
+SONAME=libipa.so
+public_symbol_count=32
+baseline=tests/abi/baseline/linux-x86_64.symbols.txt

@@ -244,7 +244,7 @@ static ErrCode json_data_extractor__find_element_with_boundary_chars(const unsig
     }
 
     // Search the open charcater
-    if (NULL == (ptr = memchr(key ? ptr : str, c_open,  key ? str_len - (ptr - str) : str_len))) {
+    if (NULL == (ptr = (unsigned char *)memchr(key ? ptr : str, c_open,  key ? str_len - (ptr - str) : str_len))) {
         LOGD("[json_data_extractor__find_element_with_boundary_chars] open character '%c' not found", c_open);
         return eFatal;
     }

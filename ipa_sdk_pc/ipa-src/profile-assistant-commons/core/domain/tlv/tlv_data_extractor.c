@@ -331,10 +331,11 @@ ErrCode tlv_data_extractor__tlv_value_big_size_copy(unsigned short tag, const ui
 }
 
 ErrCode tlv_data_extractor__tlv_value_small_size_ref(unsigned short tag, const uint8_t* tlv, const uint32_t tlv_size, bool* tlv_is_present, uint8_t** out, uint8_t* out_size) {
-    uint32_t aux_out_size;
+    uint32_t aux_out_size = 0;
     ErrCode rc;
 
     if (eOk == (rc = tlv_data_extractor__tlv_value_big_size_ref(tag, tlv, tlv_size, tlv_is_present, out, &aux_out_size))) {
+        if (aux_out_size > UINT8_MAX) return eNotEnoughBuffer;
         *out_size = (uint8_t) aux_out_size;
     }
 
@@ -342,10 +343,11 @@ ErrCode tlv_data_extractor__tlv_value_small_size_ref(unsigned short tag, const u
 }
 
 ErrCode tlv_data_extractor__tlv_value_medium_size_ref(unsigned short tag, const uint8_t* tlv, const uint32_t tlv_size, bool* tlv_is_present, uint8_t** out, uint16_t* out_size) {
-    uint32_t aux_out_size;
+    uint32_t aux_out_size = 0;
     ErrCode rc;
 
     if (eOk == (rc = tlv_data_extractor__tlv_value_big_size_ref(tag, tlv, tlv_size, tlv_is_present, out, &aux_out_size))) {
+        if (aux_out_size > UINT16_MAX) return eNotEnoughBuffer;
         *out_size = (uint16_t) aux_out_size;
     }
 
@@ -357,10 +359,11 @@ ErrCode tlv_data_extractor__tlv_value_big_size_ref(unsigned short tag, const uin
 }
 
 ErrCode tlv_data_extractor__tlv_small_size_ref(unsigned short tag, const uint8_t* tlv, const uint32_t tlv_size, bool* tlv_is_present, uint8_t** out, uint8_t* out_size) {
-    uint32_t aux_out_size;
+    uint32_t aux_out_size = 0;
     ErrCode rc;
 
     if (eOk == (rc = tlv_data_extractor__tlv_big_size_ref(tag, tlv, tlv_size, tlv_is_present, out, &aux_out_size))) {
+        if (aux_out_size > UINT8_MAX) return eNotEnoughBuffer;
         *out_size = (uint8_t) aux_out_size;
     }
 
@@ -368,10 +371,11 @@ ErrCode tlv_data_extractor__tlv_small_size_ref(unsigned short tag, const uint8_t
 }
 
 ErrCode tlv_data_extractor__tlv_medium_size_ref(unsigned short tag, const uint8_t* tlv, const uint32_t tlv_size, bool* tlv_is_present, uint8_t** out, uint16_t* out_size) {
-    uint32_t aux_out_size;
+    uint32_t aux_out_size = 0;
     ErrCode rc;
 
     if (eOk == (rc = tlv_data_extractor__tlv_big_size_ref(tag, tlv, tlv_size, tlv_is_present, out, &aux_out_size))) {
+        if (aux_out_size > UINT16_MAX) return eNotEnoughBuffer;
         *out_size = (uint16_t) aux_out_size;
     }
 
@@ -383,10 +387,11 @@ ErrCode tlv_data_extractor__tlv_big_size_ref(unsigned short tag, const uint8_t* 
 }
 
 ErrCode tlv_data_extractor__child_tag_tlv_small_size_ref(unsigned short parent_tag, const uint8_t* tlv, const uint32_t tlv_size, bool* tlv_is_present, unsigned short* child_tag, uint8_t** child_tlv, uint8_t* child_tlv_size) {
-    uint32_t aux_child_tlv_size;
+    uint32_t aux_child_tlv_size = 0;
     ErrCode rc;
 
     if (eOk == (rc = tlv_data_extractor__child_tag_tlv_big_size_ref(parent_tag, tlv, tlv_size, tlv_is_present, child_tag, child_tlv, &aux_child_tlv_size))) {
+        if (aux_child_tlv_size > UINT8_MAX) return eNotEnoughBuffer;
         *child_tlv_size = (uint8_t) aux_child_tlv_size;
     }
 
@@ -394,10 +399,11 @@ ErrCode tlv_data_extractor__child_tag_tlv_small_size_ref(unsigned short parent_t
 }
 
 ErrCode tlv_data_extractor__child_tag_tlv_medium_size_ref(unsigned short parent_tag, const uint8_t* tlv, const uint32_t tlv_size, bool* tlv_is_present, unsigned short* child_tag, uint8_t** child_tlv, uint16_t* child_tlv_size) {
-    uint32_t aux_child_tlv_size;
+    uint32_t aux_child_tlv_size = 0;
     ErrCode rc;
 
     if (eOk == (rc = tlv_data_extractor__child_tag_tlv_big_size_ref(parent_tag, tlv, tlv_size, tlv_is_present, child_tag, child_tlv, &aux_child_tlv_size))) {
+        if (aux_child_tlv_size > UINT16_MAX) return eNotEnoughBuffer;
         *child_tlv_size = (uint16_t) aux_child_tlv_size;
     }
 

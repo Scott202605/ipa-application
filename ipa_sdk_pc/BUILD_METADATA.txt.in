@@ -1,0 +1,14 @@
+product=IPAd SDK
+project_version=@PROJECT_VERSION@
+git_commit=@IPA_BUILD_GIT_COMMIT@
+compiler=@CMAKE_C_COMPILER_ID@ @CMAKE_C_COMPILER_VERSION@
+build_type=@CMAKE_BUILD_TYPE@
+c_flags=@CMAKE_C_FLAGS@
+shared_libraries=@BUILD_SHARED_LIBS@
+sgp_mode=SGP32
+mqtt=enabled
+lwm2m=enabled
+http_esipa=enabled
+soname=@IPA_BUILD_SONAME@
+asan_ubsan=@IPA_ENABLE_ASAN_UBSAN@
+tsan=@IPA_ENABLE_TSAN@
