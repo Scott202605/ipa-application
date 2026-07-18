@@ -21,3 +21,7 @@ add_test(NAME test_doctor COMMAND test_doctor)
 add_executable(test_platform_check test_platform_check.c)
 target_link_libraries(test_platform_check PRIVATE ipadctl_testlib ipad_common)
 add_test(NAME test_platform_check COMMAND test_platform_check)
+
+add_executable(test_platform_command test_platform_command.c)
+target_link_libraries(test_platform_command PRIVATE ipadctl_testlib ipad_common)
+add_test(NAME test_platform_command COMMAND test_platform_command)

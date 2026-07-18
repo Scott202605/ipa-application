@@ -188,3 +188,21 @@ int ipadctl_platform_report(const char *root, char *out, size_t out_size) {
                        init_json);
     return written > 0 && (size_t)written < out_size ? 0 : 1;
 }
+
+int ipadctl_platform_command(int argc, char **argv) {
+    const char *root = NULL;
+    char output[4096];
+    int rc;
+
+    if (argc >= 4 && strcmp(argv[argc - 2], "--root") == 0) {
+        root = argv[argc - 1];
+        argc -= 2;
+    }
+
+    if (argc == 2 && strcmp(argv[0], "platform") == 0 && strcmp(argv[1], "check") == 0) {
+        rc = ipadctl_platform_report(root, output, sizeof(output));
+        fputs(output, rc == 0 ? stdout : stderr);
+        return rc;
+    }
+    return 2;
+}

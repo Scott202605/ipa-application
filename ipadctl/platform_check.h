@@ -32,5 +32,6 @@ const char *ipadctl_init_system_name(ipadctl_init_system_t init);
 const char *ipadctl_support_level_name(ipadctl_support_level_t support);
 const char *ipadctl_restart_hint(ipadctl_init_system_t init);
 int ipadctl_platform_report(const char *root, char *out, size_t out_size);
+int ipadctl_platform_command(int argc, char **argv);
 
 #endif

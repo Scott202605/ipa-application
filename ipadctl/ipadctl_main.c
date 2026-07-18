@@ -3,6 +3,7 @@
 #include "diagnostics.h"
 #include "ipad_protocol.h"
 #include "ipad_socket.h"
+#include "platform_check.h"
 #include "setup_commands.h"
 
 #include <stdio.h>
@@ -15,6 +16,7 @@ static void usage(const char *argv0) {
     printf("  %s device list [--dev-root <path>]\n", argv0);
     printf("  %s [--config <path>] setup --mock\n", argv0);
     printf("  %s [--config <path>] setup --real --at-device <path>\n", argv0);
+    printf("  %s platform check\n", argv0);
     printf("  %s [--config <path>] [--socket <path>] doctor\n", argv0);
     printf("  %s [--socket <path>] status\n", argv0);
     printf("  %s [--socket <path>] sdk init\n", argv0);
@@ -80,6 +82,12 @@ int main(int argc, char **argv) {
     }
     if (argc - argi >= 1 && strcmp(argv[argi], "setup") == 0) {
         int rc = ipadctl_setup_command(argc - argi, argv + argi, config_path);
+        if (rc != 2) {
+            return rc;
+        }
+    }
+    if (argc - argi >= 1 && strcmp(argv[argi], "platform") == 0) {
+        int rc = ipadctl_platform_command(argc - argi, argv + argi);
         if (rc != 2) {
             return rc;
         }
