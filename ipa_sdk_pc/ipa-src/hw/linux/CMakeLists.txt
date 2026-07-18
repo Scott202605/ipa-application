@@ -16,6 +16,7 @@ target_sources(${PROJECT_NAME} PRIVATE runtime/ipa_task_supervisor.c)
 target_sources(${PROJECT_NAME} PRIVATE runtime/ipa_runtime.c)
 target_sources(${PROJECT_NAME} PRIVATE runtime/ipa_euicc_executor.c)
 target_sources(${PROJECT_NAME} PRIVATE runtime/ipa_eim_registry.c)
+target_sources(${PROJECT_NAME} PRIVATE runtime/ipa_diagnostics.c)
 target_include_directories(${PROJECT_NAME} PRIVATE runtime)
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "ipa")
 

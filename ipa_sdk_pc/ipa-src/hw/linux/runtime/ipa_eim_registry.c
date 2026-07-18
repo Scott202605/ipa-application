@@ -1,4 +1,5 @@
 #include "ipa_eim_registry.h"
+#include "ipa_diagnostics.h"
 
 #include <errno.h>
 #include <stdbool.h>
@@ -94,6 +95,8 @@ int ipa_eim_registry_start(ipa_eim_registry_t *registry,
   if (result == 0) {
     slot->joinable = true;
   } else {
+    ipa_diagnostics_global_record("eim-registry", "start-session", result,
+                                  result, 0, slot_id, true, true);
     slot->running = false;
     slot->worker = NULL;
     slot->worker_context = NULL;

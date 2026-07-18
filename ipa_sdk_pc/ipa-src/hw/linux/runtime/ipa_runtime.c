@@ -1,5 +1,6 @@
 #include "../../../../include/ipa_core.h"
 #include "ipa_config_snapshot.h"
+#include "ipa_diagnostics.h"
 #include "ipa_runtime.h"
 
 #include <errno.h>
@@ -82,6 +83,8 @@ int ipa_runtime_start(ipa_runtime_t *runtime, const cl_config_t *config,
   result = ipa_task_supervisor_start(runtime->supervisor, IPA_TASK_SLOT_INIT,
                                      0, run_initialization, runtime);
   if (result != 0) {
+    ipa_diagnostics_global_record("runtime", "start-init-task", result,
+                                  result, 0, -1, true, true);
     runtime->state = IPA_RUNTIME_UNINITIALIZED;
     runtime->config = NULL;
     runtime->init_worker = NULL;
