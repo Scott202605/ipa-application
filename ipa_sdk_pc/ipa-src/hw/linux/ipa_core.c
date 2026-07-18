@@ -195,6 +195,10 @@ static void initialize_eim_registry(void) {
     g_eim_registry = NULL;
 }
 
+static bool fixed_string_terminated(const char *value, size_t capacity) {
+  return value && memchr(value, '\0', capacity) != NULL;
+}
+
 void notify_app(ipa_event_type_t event_type, void *event_data) {
   if (g_event_cb != NULL) {
     g_event_cb(event_type, event_data);
@@ -368,7 +372,24 @@ static void disconnect_mqtt_service() {
 ErrCode connect_mqtt_service(const ipa_config_mqtt_t *config) {
   ipa_mqtt_config_snapshot_t *snapshot = NULL;
   int err;
-  if (!config) return eBadArg;
+  if (!config || !fixed_string_terminated(config->protocol,
+                                           sizeof(config->protocol)) ||
+      !fixed_string_terminated(config->hostname,
+                               sizeof(config->hostname)) ||
+      !fixed_string_terminated(config->username,
+                               sizeof(config->username)) ||
+      !fixed_string_terminated(config->password,
+                               sizeof(config->password)) ||
+      !fixed_string_terminated(config->tls_config.server_cert_absolute_pem_path,
+                               sizeof(config->tls_config.server_cert_absolute_pem_path)) ||
+      !fixed_string_terminated(config->tls_config.client_cert_absolute_pem_path,
+                               sizeof(config->tls_config.client_cert_absolute_pem_path)) ||
+      !fixed_string_terminated(config->tls_config.private_key_absolute_pem_path,
+                               sizeof(config->tls_config.private_key_absolute_pem_path)) ||
+      !fixed_string_terminated(config->proxy_config.url,
+                               sizeof(config->proxy_config.url)) ||
+      config->port < 1 || config->port > 65535)
+    return eBadArg;
   pthread_once(&g_eim_registry_once, initialize_eim_registry);
   if (!g_eim_registry) return eFatal;
   if (ipa_mqtt_config_snapshot_create(config, &snapshot) != eOk) return eFatal;
@@ -403,7 +424,12 @@ static void disconnect_lwm2m_service() {
 ErrCode connect_lwm2m_service(const ipa_config_lwm2m_t *config) {
   ipa_lwm2m_config_snapshot_t *snapshot = NULL;
   int err;
-  if (!config) return eBadArg;
+  if (!config || !fixed_string_terminated(config->hostname,
+                                           sizeof(config->hostname)) ||
+      !fixed_string_terminated(config->client_name,
+                               sizeof(config->client_name)) ||
+      config->port < 1 || config->port > 65535)
+    return eBadArg;
   pthread_once(&g_eim_registry_once, initialize_eim_registry);
   if (!g_eim_registry) return eFatal;
   if (ipa_lwm2m_config_snapshot_create(config, &snapshot) != eOk) return eFatal;
@@ -441,7 +467,10 @@ static void disconnect_http_service() {
 ErrCode connect_http_service(const ipa_config_http_t *config) {
   ipa_http_config_snapshot_t *snapshot = NULL;
   int err;
-  if (!config) return eBadArg;
+  if (!config || !fixed_string_terminated(config->fqdn,
+                                           sizeof(config->fqdn)) ||
+      config->fqdn[0] == '\0')
+    return eBadArg;
   pthread_once(&g_eim_registry_once, initialize_eim_registry);
   if (!g_eim_registry) return eFatal;
   if (ipa_http_config_snapshot_create(config, &snapshot) != eOk) return eFatal;

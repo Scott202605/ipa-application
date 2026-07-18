@@ -167,7 +167,7 @@ int MQTT_connect(mqtt_client_t* const me) {
     if (network_utils__is_secure_protocol(me->protocol)) {
         LOGD("[MQTT]\t[MQTT_connect] TLS connection");
         MQTTClient_SSLOptions ssl_connection_options = MQTTClient_SSLOptions_initializer;
-        ssl_connection_options.enableServerCertAuth = 0;
+        ssl_connection_options.enableServerCertAuth = 1;
         // declare values for ssl options, here we use only the ones necessary for TLS
         ssl_connection_options.verify = 1;
         ssl_connection_options.CApath = NULL;
@@ -178,7 +178,6 @@ int MQTT_connect(mqtt_client_t* const me) {
         }
         if (me->tls_config && strlen(me->tls_config->server_cert_absolute_pem_path) > 0) {
             ssl_connection_options.trustStore = me->tls_config->server_cert_absolute_pem_path; // file of certificates trusted by client
-            ssl_connection_options.enableServerCertAuth = true;
         } else {
             ssl_connection_options.trustStore = NULL;
         }
@@ -201,7 +200,7 @@ int MQTT_connect(mqtt_client_t* const me) {
 	if (me->username && me->password) {
         connection_options.username = me->username;
         connection_options.password = me->password;
-        LOGD("[MQTT]\tCredentials to be used to connect to the broker: username [%s] and password [%s]", connection_options.username, connection_options.password);
+        LOGD("[MQTT]\tCredentials configured for username [%s]; password [REDACTED]", connection_options.username);
     } else {
         LOGD("[MQTT]\tNo username and password will be used to connect to the broker");
     }

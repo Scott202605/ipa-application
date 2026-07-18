@@ -2,6 +2,7 @@
  * Copyright (c) Giesecke+Devrient Mobile Security GmbH 2023-2024
  */
 #include <curl/curl.h>
+#include <stdint.h>
 
 #include "http_client.h"
 #include "memory_manager.h"
@@ -105,15 +106,15 @@ long HTTP_execute(void* handle,uint32_t timeout) {
         return -rc;
     }
 
-    /** TODO: Modify the HTTP interface to allow server authentication */
-    rc = curl_easy_setopt((CURL*) handle, CURLOPT_SSL_VERIFYHOST, 0L); // The default value is 2
+    /* Always fail closed: public API intentionally has no insecure bypass. */
+    rc = curl_easy_setopt((CURL*) handle, CURLOPT_SSL_VERIFYHOST, 2L);
     if (rc != CURLE_OK) {
-        LOGE("[HTTP_execute] Error on disable certificate's name verification against host, rc %d", rc);
+        LOGE("[HTTP_execute] Error enabling certificate hostname verification, rc %d", rc);
         return -rc;
     }
-    rc = curl_easy_setopt((CURL*) handle, CURLOPT_SSL_VERIFYPEER, 0L); // The default value is 1
+    rc = curl_easy_setopt((CURL*) handle, CURLOPT_SSL_VERIFYPEER, 1L);
     if (rc != CURLE_OK) {
-        LOGE("[HTTP_execute] Error on disable peer's SSL certificate verification, rc %d", rc);
+        LOGE("[HTTP_execute] Error enabling peer certificate verification, rc %d", rc);
         return -rc;
     }
 
@@ -161,8 +162,18 @@ void HTTP_cleanup(void* client_handle, void* headers_list_handle) {
 }
 
 static size_t write_memory_callback(void* contents, size_t size, size_t nmemb, void* userp) {
-    size_t realsize = size * nmemb;
+    size_t realsize;
     struct memory_struct* mem = (struct memory_struct*) userp;
+
+    if (!mem || (nmemb != 0 && size > SIZE_MAX / nmemb)) {
+        LOGE("[write_memory_callback] Response size overflow");
+        return 0;
+    }
+    realsize = size * nmemb;
+    if (mem->size > SIZE_MAX - realsize) {
+        LOGE("[write_memory_callback] Accumulated response size overflow");
+        return 0;
+    }
 
     unsigned char* ptr = M_realloc(mem->memory, mem->size + realsize);
     if (ptr == NULL) {

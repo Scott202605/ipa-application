@@ -298,8 +298,13 @@ int lwm2m_create_client(lwm2m_ipa_client_t* const me, char* address, int port, b
     int err;
     int server_id = 123; // To global const
     char * pskId = NULL;        /** TODO: DTLS*/
-    uint16_t pskLen = -1;       /** TODO: DTLS*/
+    uint16_t pskLen = 0;        /** DTLS is rejected until credentials are supported. */
     char * pskBuffer = NULL;    /** TODO: DTLS*/
+
+    if (!address || !client_name || port < 1 || port > 65535) {
+        LOGE("[lwm2m_create_client] Invalid endpoint configuration");
+        return -eBadArg;
+    }
 
     if (dtls) {
         LOGE("[lwm2m_create_client] CoAP DTLS connections is not supported");
@@ -322,8 +327,10 @@ int lwm2m_create_client(lwm2m_ipa_client_t* const me, char* address, int port, b
 #endif
 
     /* Set Security object */
-    if ((err = snprintf(server_uri, sizeof(server_uri), COAP_URI_TEMPLATE, address, port)) < 0) { /** TODO: Support DTLS */
+    if ((err = snprintf(server_uri, sizeof(server_uri), COAP_URI_TEMPLATE, address, port)) < 0 ||
+        (size_t)err >= sizeof(server_uri)) { /** TODO: Support DTLS */
         LOGE("[lwm2m_create_client] Error on write the CoAP URI, err %d", err);
+        M_free(client_data);
         return err;
     }
     lwm2m_client_objects[0] = get_security_object(server_id, server_uri, pskId, pskBuffer, pskLen, me->bootstrap_server);

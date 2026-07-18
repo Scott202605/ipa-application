@@ -99,3 +99,20 @@ target_include_directories(ipa_diagnostics_test PRIVATE
   ${PROJECT_SOURCE_DIR}/ipa-src/hw/linux/runtime)
 target_link_libraries(ipa_diagnostics_test PRIVATE pthread)
 add_test(NAME ipa_diagnostics COMMAND ipa_diagnostics_test)
+
+add_test(
+  NAME ipa_transport_security_policy
+  COMMAND ${Python3_EXECUTABLE}
+          ${CMAKE_CURRENT_SOURCE_DIR}/integration/test_tls_policy.py
+          --http ${PROJECT_SOURCE_DIR}/ipa-src/profile-assistant-commons/hw/linux/http_client_linux.c
+          --mqtt ${PROJECT_SOURCE_DIR}/ipa-src/profile-assistant-commons/hw/linux/mqtt_client_linux.c
+          --lwm2m ${PROJECT_SOURCE_DIR}/ipa-src/hw/linux/lwm2m/lwm2m_client_linux.c)
+
+add_executable(ipa_checked_sizes_test
+  runtime/test_checked_sizes.c
+  ${PROJECT_SOURCE_DIR}/ipa-src/hw/linux/runtime/ipa_euicc_executor.c)
+target_compile_features(ipa_checked_sizes_test PRIVATE c_std_11)
+target_include_directories(ipa_checked_sizes_test PRIVATE
+  ${PROJECT_SOURCE_DIR}/ipa-src/hw/linux/runtime)
+target_link_libraries(ipa_checked_sizes_test PRIVATE pthread)
+add_test(NAME ipa_checked_sizes COMMAND ipa_checked_sizes_test)
