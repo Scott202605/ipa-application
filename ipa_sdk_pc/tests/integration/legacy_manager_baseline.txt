@@ -1,0 +1,5 @@
+baseline_commit=6252122
+binary=ipa_sdk_pc/build-legacy/main_app/desktop_app
+sha256=d47d93ce7076aa0ccf89db0f144598f2624e2d52fa8381a33505631429dce6b3
+elf_needed=libipa.so
+architecture=linux-x86_64

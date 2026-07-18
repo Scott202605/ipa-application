@@ -116,3 +116,35 @@ target_include_directories(ipa_checked_sizes_test PRIVATE
   ${PROJECT_SOURCE_DIR}/ipa-src/hw/linux/runtime)
 target_link_libraries(ipa_checked_sizes_test PRIVATE pthread)
 add_test(NAME ipa_checked_sizes COMMAND ipa_checked_sizes_test)
+
+add_executable(ipa_fault_injection_smoke
+  integration/fault_injection_smoke.c
+  ${PROJECT_SOURCE_DIR}/ipa-src/hw/linux/runtime/ipa_runtime.c
+  ${PROJECT_SOURCE_DIR}/ipa-src/hw/linux/runtime/ipa_config_snapshot.c
+  ${PROJECT_SOURCE_DIR}/ipa-src/hw/linux/runtime/ipa_task_supervisor.c
+  ${PROJECT_SOURCE_DIR}/ipa-src/hw/linux/runtime/ipa_diagnostics.c)
+target_compile_features(ipa_fault_injection_smoke PRIVATE c_std_11)
+target_include_directories(ipa_fault_injection_smoke PRIVATE
+  ${PROJECT_SOURCE_DIR}/include
+  ${PROJECT_SOURCE_DIR}/ipa-src/hw/linux/runtime)
+target_link_libraries(ipa_fault_injection_smoke PRIVATE pthread)
+add_test(NAME ipa_fault_injection_smoke COMMAND ipa_fault_injection_smoke)
+
+add_test(
+  NAME ipa_manager_placeholder_compatibility
+  COMMAND ${Python3_EXECUTABLE}
+          ${CMAKE_CURRENT_SOURCE_DIR}/integration/test_manager_placeholders.py
+          --wrapper ${PROJECT_SOURCE_DIR}/../ipad_host_app/src/sdk_wrapper/ipad_wrapper.c)
+
+set(IPA_LEGACY_MANAGER_BINARY "" CACHE FILEPATH
+    "Pre-hardening Manager binary used for ABI compatibility testing")
+set(IPA_LEGACY_MANAGER_SHA256 "" CACHE STRING
+    "Expected SHA-256 of IPA_LEGACY_MANAGER_BINARY")
+if(IPA_LEGACY_MANAGER_BINARY AND IPA_LEGACY_MANAGER_SHA256)
+  add_test(
+    NAME ipa_legacy_manager_binary
+    COMMAND sh ${CMAKE_CURRENT_SOURCE_DIR}/integration/legacy_manager_smoke.sh
+            ${IPA_LEGACY_MANAGER_BINARY}
+            $<TARGET_FILE_DIR:ipa-core>
+            ${IPA_LEGACY_MANAGER_SHA256})
+endif()
