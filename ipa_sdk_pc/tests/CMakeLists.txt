@@ -43,3 +43,12 @@ target_include_directories(ipa_config_snapshot_test PRIVATE
 target_compile_definitions(ipa_config_snapshot_test PRIVATE
   SGP32 ENABLE_MQTT ENABLE_LWM2M ENABLE_HTTP_ESIPA)
 add_test(NAME ipa_config_snapshot COMMAND ipa_config_snapshot_test)
+
+add_executable(ipa_task_supervisor_test
+  runtime/test_task_supervisor.c
+  ${PROJECT_SOURCE_DIR}/ipa-src/hw/linux/runtime/ipa_task_supervisor.c)
+target_compile_features(ipa_task_supervisor_test PRIVATE c_std_11)
+target_include_directories(ipa_task_supervisor_test PRIVATE
+  ${PROJECT_SOURCE_DIR}/ipa-src/hw/linux/runtime)
+target_link_libraries(ipa_task_supervisor_test PRIVATE pthread)
+add_test(NAME ipa_task_supervisor COMMAND ipa_task_supervisor_test)
