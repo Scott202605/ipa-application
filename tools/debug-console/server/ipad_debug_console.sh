@@ -11,4 +11,6 @@ esac
 
 echo "Debug console static files are in tools/debug-console/static"
 echo "Bind address: $HOST:$PORT"
-echo "Backend implementation should proxy /api/status to ipadctl --json doctor"
+
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+exec node "$SCRIPT_DIR/server.js"
