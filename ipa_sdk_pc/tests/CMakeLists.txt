@@ -28,3 +28,18 @@ add_test(
           ${CMAKE_CURRENT_SOURCE_DIR}/runtime/test_core_regressions.py
           --source ${PROJECT_SOURCE_DIR}/ipa-src/hw/linux/ipa_core.c
 )
+
+add_executable(ipa_config_snapshot_test
+  runtime/test_config_snapshot.c
+  ${PROJECT_SOURCE_DIR}/ipa-src/hw/linux/runtime/ipa_config_snapshot.c)
+target_compile_features(ipa_config_snapshot_test PRIVATE c_std_11)
+target_include_directories(ipa_config_snapshot_test PRIVATE
+  ${PROJECT_SOURCE_DIR}/include
+  ${PROJECT_SOURCE_DIR}/ipa-src/hw/linux/runtime
+  ${PROJECT_SOURCE_DIR}/ipa-src/hw/linux
+  ${PROJECT_SOURCE_DIR}/ipa-src/profile-assistant-commons/core
+  ${PROJECT_SOURCE_DIR}/ipa-src/profile-assistant-commons/core/logger
+  ${PROJECT_SOURCE_DIR}/ipa-src/profile-assistant-commons/hw/linux)
+target_compile_definitions(ipa_config_snapshot_test PRIVATE
+  SGP32 ENABLE_MQTT ENABLE_LWM2M ENABLE_HTTP_ESIPA)
+add_test(NAME ipa_config_snapshot COMMAND ipa_config_snapshot_test)

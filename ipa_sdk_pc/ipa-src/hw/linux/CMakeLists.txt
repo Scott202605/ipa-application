@@ -7,6 +7,8 @@ else ()
 endif ()
 target_include_directories(${PROJECT_NAME} PRIVATE .)
 target_sources(${PROJECT_NAME} PRIVATE ipa_core.c)
+target_sources(${PROJECT_NAME} PRIVATE runtime/ipa_config_snapshot.c)
+target_include_directories(${PROJECT_NAME} PRIVATE runtime)
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "ipa")
 
 if(UNIX AND NOT APPLE)
